@@ -57,16 +57,17 @@ const CONFIG = {
   audio: {
     rootMidi: 55,                 // bottom row = G3 (MIDI note number)
     scale: [0, 2, 4, 7, 9],       // major pentatonic, in semitones
-    volume: 0.22,
-    brightDecay: 0.25,            // seconds a note rings in bright light
-    darkDecay: 1.4,               // seconds a note rings in the dark
+    volume: 0.24,
+    brightDecay: 0.18,            // crisp, short note in bright light
+    darkDecay: 0.55,              // warm, clean sustain in the dark
     brightWave: 'triangle',
     darkWave: 'sine',
     referenceArea: 1400 * 700,    // grid area that counts as a "large room"
-    echoMinSec: 0.08,             // small window → short echo
-    echoMaxSec: 0.45,             // large window → long echo
-    echoFeedbackBright: 0.15,     // echo repeats in bright light
-    echoFeedbackDark: 0.55,       // echo repeats in the dark (more resonance)
+    echoMinSec: 0.06,             // small window → tight room reflection
+    echoMaxSec: 0.28,             // large window → clean acoustic echo
+    echoMix: 0.18,                // how loud the echo is compared to the dry note
+    echoFeedbackBright: 0.08,     // very light echo repeats in bright light
+    echoFeedbackDark: 0.28,       // gentle resonance in the dark
   },
 
   // ---------- 5. RULES / LIMITS -----------------------------------------
