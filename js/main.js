@@ -3,9 +3,6 @@
    -------------------------------------------------------------------------
    Wires inputs (pointer, keyboard, buttons, camera) to the system and
    updates the compact Winamp LED deck + status bar.
-   KEYS (change them in KEYMAP below):
-     arrows move · Space/Enter add/remove · P play · D/B darker/brighter
-     N/W narrower/wider · S/T shorter/taller · R reset frame · C camera
    ========================================================================= */
 (function () {
   const $ = (id) => document.getElementById(id);
@@ -23,27 +20,34 @@
     notes: 'PADS',
   };
 
-  // ---------------------------------------------------------------------
-  // COMPACT LED FEEDBACK
-  // ---------------------------------------------------------------------
   function announce(msg) {
-    $('live').textContent = msg;         // screen readers
-    $('last-change').textContent = msg;  // LED ticker
+    $('live').textContent = msg;
+    $('last-change').textContent = msg;
   }
 
   function playbackText() {
-    if (STATE.playing) return `▶ PLAY ${String(STATE.step + 1).padStart(2, '0')}/${String(STATE.steps).padStart(2, '0')}`;
+    if (STATE.playing) return `▶ PLAY ${STATE.step + 1}/8`;
     if (SEQ.countStored() === 0) return '■ EMPTY';
     if (STATE.step < 0) return '■ READY';
     return '❚❚ PAUSED';
   }
 
-  let lastFolded = 0;
+  function pitchDesc() {
+    const m = RULES.pitchMultiplier(STATE.gridW);
+    const tag = m > 1.15 ? 'HIGH/TİZ' : m < 0.9 ? 'DEEP/BAS' : 'MID';
+    return `PITCH ×${m.toFixed(2)} (${tag})`;
+  }
+
+  function echoDesc() {
+    const mixPct = Math.round(RULES.echoMix(STATE.gridW, STATE.gridH) * 100);
+    const sec = RULES.echoSeconds(STATE.gridW, STATE.gridH).toFixed(2);
+    return `ECHO ${mixPct}% · ${sec}s`;
+  }
+
   function updatePanel() {
     const pct = Math.round(STATE.light * 100);
     const wave = RULES.waveFromLight(STATE.light) === 'triangle' ? 'TRI' : 'SINE';
-    const stored = SEQ.countStored(), folded = SEQ.countFolded();
-    lastFolded = folded;
+    const stored = SEQ.countStored();
 
     // Desktop teal dims with room light
     const r = Math.round(lerp(4, 0, STATE.light));
@@ -54,17 +58,15 @@
     // Winamp LED chips
     $('s-play').textContent = playbackText();
     $('s-tempo').textContent = `${RULES.bpmFromLight(STATE.light)} BPM · ${wave}`;
-    $('s-grid').textContent = `${STATE.steps}×${STATE.notes} GRID`;
-    $('s-echo').textContent = `ECHO ${RULES.echoSeconds(STATE.gridW, STATE.gridH).toFixed(2)}s`;
-    $('s-pattern').textContent = `${stored - folded} ACTIVE · →${folded} FOLDED`;
+    $('s-grid').textContent = pitchDesc();
+    $('s-echo').textContent = echoDesc();
+    $('s-pattern').textContent = `${stored} ACTIVE PADS (A1–H8)`;
 
     // Bottom status bar cells
-    $('s-window').textContent = `WIN: ${STATE.winW}×${STATE.winH}`;
+    $('s-window').textContent = `SPACE: ${STATE.gridW}×${STATE.gridH}px`;
     $('s-frame').textContent = `FRAME: ${Math.round(STATE.frameW * 100)}%×${Math.round(STATE.frameH * 100)}%`;
-    $('s-range').textContent = `PITCH: ${RULES.noteName(0)}–${RULES.noteName(STATE.notes - 1)}`;
-    $('s-light').textContent = STATE.cameraOn
-      ? `LIGHT: ${pct}% (CAM)`
-      : `LIGHT: ${pct}%`;
+    $('s-range').textContent = `GRID: A–H × 1–8`;
+    $('s-light').textContent = STATE.cameraOn ? `LIGHT: ${pct}% (CAM)` : `LIGHT: ${pct}%`;
     if ($('s-cam-luma')) {
       $('s-cam-luma').textContent = STATE.luma == null ? 'CAM' : `${Math.round(STATE.luma * 100)}%`;
     }
@@ -87,35 +89,31 @@
   // CONTEXT → FEEDBACK
   // ---------------------------------------------------------------------
   let resizeSource = 'WINDOW';
-  let burstFrom = null, burstTimer = null;
+  let burstTimer = null;
   let ready = false;
 
   CONTEXT.onMeasure = (changed, before) => {
     RENDER.resize();
     AUDIO.updateRoom();
-    if (changed && before.steps && ready) {
-      if (!burstFrom) burstFrom = { steps: before.steps, notes: before.notes, folded: lastFolded, source: resizeSource };
-      RENDER.showBadge([`${before.steps} × ${before.notes}  →  ${STATE.steps} × ${STATE.notes}`, 'STEPS × NOTES']);
+    if (changed && before.gridW && ready) {
+      const src = resizeSource;
+      RENDER.showBadge([
+        `${pitchDesc()}`,
+        `${echoDesc()}  ·  SPACE ${STATE.gridW}×${STATE.gridH}px`,
+      ]);
       clearTimeout(burstTimer);
-      burstTimer = setTimeout(() => { describeGridChange(burstFrom); burstFrom = null; }, CONFIG.grid.resizeAnnounceMs);
+      burstTimer = setTimeout(() => {
+        announce(`${src} RESIZED → ${pitchDesc()} · ${echoDesc()}`);
+        // If paused, play a reference note so the user hears the new pitch & echo immediately!
+        if (!STATE.playing && AUDIO.ctx) {
+          AUDIO.playNote(3);
+          RENDER.addRipple(3, 3);
+        }
+      }, CONFIG.grid.resizeAnnounceMs);
     }
     resizeSource = 'WINDOW';
     updatePanel();
   };
-
-  function describeGridChange(from) {
-    const parts = [];
-    if (STATE.steps !== from.steps) {
-      parts.push(`${from.steps}→${STATE.steps} STEPS`);
-    }
-    if (STATE.notes !== from.notes) {
-      parts.push(`${from.notes}→${STATE.notes} NOTES (${RULES.noteName(0)}–${RULES.noteName(STATE.notes - 1)})`);
-    }
-    const df = SEQ.countFolded() - from.folded;
-    if (df > 0) parts.push(`+${df} FOLDED (KEPT)`);
-    if (df < 0) parts.push(`${-df} UNFOLDED`);
-    if (parts.length) announce(`${from.source}: ${parts.join(' · ')}`);
-  }
 
   CONTEXT.onLight = (prev, changes) => {
     AUDIO.updateRoom();
@@ -144,15 +142,19 @@
   function editCell(row, step) {
     AUDIO.init();
     const res = SEQ.toggle(row, step);
+    const label = RULES.cellLabel(row, step);
     if (!res.ok) {
       RENDER.addFlash(row, step, 'blocked');
       announce(`WAIT ${(res.waitMs / 1000).toFixed(1)}s BEFORE NEXT EDIT`);
       return;
     }
     RENDER.addFlash(row, step, res.on ? 'on' : 'off');
-    if (res.on) AUDIO.playNote(row);
+    if (res.on) {
+      AUDIO.playNote(row);
+      RENDER.addRipple(row, step);
+    }
     const hidden = res.on && !RULES.signalVisible('notes', STATE.light) ? ' (DARK MODE: LISTEN)' : '';
-    announce(`${res.on ? '+ ADDED' : '− REMOVED'} ${RULES.noteName(row)} @ STEP ${step + 1}${hidden}`);
+    announce(`${res.on ? '+ ADDED' : '− REMOVED'} PAD ${label}${hidden} · ${echoDesc()}`);
     updatePanel();
   }
 
@@ -161,23 +163,25 @@
     STATE.cursor.step = clamp(STATE.cursor.step, 0, STATE.steps - 1);
   }
 
+  // Since row 0 ('A') is at the top and row 7 ('H') is at the bottom:
+  // ArrowUp moves up (dRow = -1), ArrowDown moves down (dRow = +1).
   function moveCursor(dRow, dStep) {
     STATE.cursorVisible = true;
     clampCursor();
     STATE.cursor.row = clamp(STATE.cursor.row + dRow, 0, STATE.notes - 1);
     STATE.cursor.step = clamp(STATE.cursor.step + dStep, 0, STATE.steps - 1);
     const { row, step } = STATE.cursor;
-    announce(`CURSOR: ${RULES.noteName(row)} · STEP ${step + 1} [${STATE.pattern[row][step] ? 'ON' : 'EMPTY'}]`);
+    announce(`CURSOR: PAD ${RULES.cellLabel(row, step)} [${STATE.pattern[row][step] ? 'ON' : 'EMPTY'}]`);
   }
 
   function togglePlay() {
     AUDIO.init();
     if (STATE.playing) {
       SEQ.pause();
-      announce(`PAUSED · ${SEQ.countStored()} NOTES KEPT`);
+      announce(`PAUSED · ${SEQ.countStored()} PADS KEPT`);
     } else {
       SEQ.play();
-      announce(`PLAYING @ ${RULES.bpmFromLight(STATE.light)} BPM`);
+      announce(`PLAYING @ ${RULES.bpmFromLight(STATE.light)} BPM · ${echoDesc()}`);
     }
     playBtn.setAttribute('aria-pressed', String(STATE.playing));
     playBtn.firstChild.textContent = STATE.playing ? '❚❚ PAUSE ' : '▶ PLAY ';
@@ -193,16 +197,18 @@
   }
 
   function changeFrame(dw, dh) {
+    AUDIO.init();
     ready = true;
     resizeSource = 'FRAME';
     CONTEXT.changeFrame(dw * CONFIG.frame.step, dh * CONFIG.frame.step);
   }
 
   function resetFrame() {
+    AUDIO.init();
     ready = true;
     resizeSource = 'FRAME';
     CONTEXT.resetFrame();
-    announce('FRAME RESET TO 100% WINDOW');
+    announce(`FRAME RESET TO 100% · ${pitchDesc()} · ${echoDesc()}`);
   }
 
   function updateCameraUI() {
@@ -237,7 +243,7 @@
   function restoreDemo() {
     SEQ.clear();
     SEQ.seed();
-    announce('DEMO MELODY LOADED');
+    announce('DEMO MELODY LOADED (A1–H8)');
     updatePanel();
   }
 
@@ -257,8 +263,8 @@
   const KEYMAP = {
     arrowleft: () => moveCursor(0, -1),
     arrowright: () => moveCursor(0, 1),
-    arrowup: () => moveCursor(1, 0),
-    arrowdown: () => moveCursor(-1, 0),
+    arrowup: () => moveCursor(-1, 0),
+    arrowdown: () => moveCursor(1, 0),
     ' ': () => { STATE.cursorVisible = true; clampCursor(); editCell(STATE.cursor.row, STATE.cursor.step); },
     enter: () => KEYMAP[' '](),
     p: togglePlay,

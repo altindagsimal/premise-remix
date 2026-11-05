@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Spatial Resonator · Context × Feedback</title>
-  <meta name="description" content="A step sequencer shaped by your browser window and the light in your room. NMED 3203 premise remix: Context × Feedback.">
+  <meta name="description" content="An 8×8 step sequencer shaped by your browser window and the light in your room. NMED 3203 premise remix: Context × Feedback.">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -26,25 +26,25 @@
 
     <!-- SINGLE-LINE INSTRUCTION BANNER -->
     <div class="subbar">
-      <p class="instruction">★ Click pads to place notes and press <b>PLAY</b> — resize the window or dim the light to reshape the loop.</p>
+      <p class="instruction">★ Click pads (<b>A1–H8</b>) and press <b>PLAY</b> — resize the window (changes pitch &amp; echo) or dim the light (hides visual signals).</p>
     </div>
 
-    <!-- WINAMP-STYLE LED FEEDBACK DECK (replaces text clutter) -->
+    <!-- WINAMP-STYLE LED FEEDBACK DECK -->
     <section class="lcd-deck" aria-label="System state and active signals">
       <div class="lcd-main">
         <div class="lcd-top-row">
           <span class="lcd-play" id="s-play">■ READY</span>
           <span class="lcd-bpm" id="s-tempo">116 BPM · TRI</span>
-          <span class="lcd-chip" id="s-grid">10×8 GRID</span>
-          <span class="lcd-chip" id="s-echo">ECHO 0.25s</span>
-          <span class="lcd-chip" id="s-pattern">10 NOTES · →4 FOLDED</span>
+          <span class="lcd-chip" id="s-grid">PITCH ×1.00</span>
+          <span class="lcd-chip" id="s-echo">ECHO 30% · 0.24s</span>
+          <span class="lcd-chip" id="s-pattern">8 ACTIVE PADS (A1–H8)</span>
         </div>
-        <p class="lcd-ticker" id="last-change" aria-hidden="true">READY — CLICK ANY PAD OR PRESS [P] TO PLAY</p>
+        <p class="lcd-ticker" id="last-change" aria-hidden="true">READY — CLICK ANY PAD (A1–H8) OR PRESS [P] TO PLAY</p>
       </div>
 
       <!-- 4 VISUAL SIGNAL LED PILLS (Context -> Feedback coupling) -->
       <ul class="signal-leds" aria-label="Active visual signals">
-        <li data-signal="gridLines" title="Grid lines & note labels (needs ≥55% light)">
+        <li data-signal="gridLines" title="Grid lines & A–H / 1–8 labels (needs ≥55% light)">
           <span class="led-dot" aria-hidden="true"></span>
           <span class="mark" aria-hidden="true">✓</span>
           <span class="sig-name">GRID</span>
@@ -62,7 +62,7 @@
           <span class="sig-name">HEAD</span>
           <span class="need">≥25%</span>
         </li>
-        <li data-signal="notes" title="Note pads & folded arrows (needs ≥10% light)">
+        <li data-signal="notes" title="Note pads A1–H8 (needs ≥10% light)">
           <span class="led-dot" aria-hidden="true"></span>
           <span class="mark" aria-hidden="true">✓</span>
           <span class="sig-name">PADS</span>
@@ -82,7 +82,7 @@
     <main class="stage-area">
       <div class="stage-bevel">
         <canvas id="stage" tabindex="0"
-          aria-label="Note grid. Arrow keys move the cursor, Space adds or removes a note."
+          aria-label="8 by 8 note grid, rows A to H, columns 1 to 8. Arrow keys move the cursor, Space adds or removes a note."
           aria-describedby="keys-hint"></canvas>
       </div>
     </main>
@@ -102,7 +102,7 @@
       </div>
 
       <div class="frame-buttons" role="group" aria-label="Frame size (keyboard alternative to resizing window)">
-        <span class="cluster-label">FRAME:</span>
+        <span class="cluster-label">ROOM SIZE:</span>
         <button class="btn95 mini" data-frame="-1,0" aria-label="Narrower frame (N)">⇥⇤ <kbd>N</kbd></button>
         <button class="btn95 mini" data-frame="1,0" aria-label="Wider frame (W)">⇤⇥ <kbd>W</kbd></button>
         <button class="btn95 mini" data-frame="0,-1" aria-label="Shorter frame (S)">⤓⤒ <kbd>S</kbd></button>
@@ -111,15 +111,19 @@
       </div>
     </section>
 
-    <!-- WIN95 BOTTOM STATUS BAR (compact readout + credits) -->
+    <!-- WIN95 BOTTOM STATUS BAR -->
     <footer class="statusbar">
-      <span class="status-cell" id="s-window">WIN: –</span>
+      <span class="status-cell" id="s-window">SPACE: –</span>
       <span class="status-cell" id="s-frame">FRAME: 100%×100%</span>
-      <span class="status-cell" id="s-range">PITCH: G3–E5</span>
+      <span class="status-cell" id="s-range">GRID: A–H × 1–8</span>
       <span class="status-cell" id="s-light">LIGHT: 75%</span>
       <span class="status-cell" id="keys-hint">KEYS: ARROWS + SPACE · P · D/B · N/W/S/T/R · C</span>
       <span class="status-cell credits">
-        <a href="https://github.com/altindagsimal/premise-remix#readme">Dey (2001) · Dourish (2004) · Hutchins et al. (1985) · README ↗</a>
+        Sources:
+        <a href="https://doi.org/10.1007/s007790170019" target="_blank" rel="noopener noreferrer">Dey (2001) ↗</a> ·
+        <a href="https://www.dourish.com/publications/2004/PUC2004-context.pdf" target="_blank" rel="noopener noreferrer">Dourish (2004) PDF ↗</a> ·
+        <a href="https://www.lri.fr/~mbl/ENS/FONDIHM/2013/papers/Hutchins-HCI-85.pdf" target="_blank" rel="noopener noreferrer">Hutchins et al. (1985) PDF ↗</a> ·
+        <a href="https://mertseven.com/ima/lab/bibliography.html" target="_blank" rel="noopener noreferrer">IMA Lab ↗</a>
       </span>
     </footer>
   </div>

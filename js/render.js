@@ -1,12 +1,10 @@
 /* =========================================================================
    SPATIAL RESONATOR · RENDER (Win95 / Winamp / Y2K Edition)
    -------------------------------------------------------------------------
-   Draws the sequencer stage on the canvas. Each feedback signal is drawn
-   only if RULES.signalVisible(name, light) says so — the room decides what
-   the system shows. Meaning never relies on colour alone: 3D bevel shapes,
-   note labels, ★ symbols, ▲/△ playhead and →n/↑n badges are used.
+   Draws the 8×8 sequencer stage (rows A–H top-to-bottom, steps 1–8
+   left-to-right). Cells never disappear when resizing; instead, the cells,
+   ripples, pitch and echo reshape with the window.
    ========================================================================= */
-const rgba = (c, a) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
 const MONO = '"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
 
 function drawBevelBox(c, x, y, w, h, fill, raised = true) {
@@ -35,7 +33,7 @@ const RENDER = {
   ripples: [],
   flashes: [],
   badge: null,
-  PAD: { left: 48, top: 26, right: 38, bottom: 24 },
+  PAD: { left: 46, top: 26, right: 16, bottom: 24 },
 
   setup(canvas) {
     this.canvas = canvas;
@@ -62,17 +60,19 @@ const RENDER = {
     };
   },
 
+  // Top-to-bottom indexing: row 0 = 'A' (top), row 7 = 'H' (bottom).
+  // Every cell (A1 … H8) always stays in its exact row & column!
   cellRect(row, step) {
     const g = this.geo;
-    return { x: g.x0 + step * g.cellW, y: g.y0 + (STATE.notes - 1 - row) * g.cellH, w: g.cellW, h: g.cellH };
+    return { x: g.x0 + step * g.cellW, y: g.y0 + row * g.cellH, w: g.cellW, h: g.cellH };
   },
 
   cellAt(px, py) {
     const g = this.geo;
     const step = Math.floor((px - g.x0) / g.cellW);
-    const fromTop = Math.floor((py - g.y0) / g.cellH);
-    if (step < 0 || step >= STATE.steps || fromTop < 0 || fromTop >= STATE.notes) return null;
-    return { row: STATE.notes - 1 - fromTop, step };
+    const row = Math.floor((py - g.y0) / g.cellH);
+    if (step < 0 || step >= STATE.steps || row < 0 || row >= STATE.notes) return null;
+    return { row, step };
   },
 
   rowColor(row) {
@@ -123,7 +123,7 @@ const RENDER = {
       c.setLineDash([]);
     }
 
-    // 1. GRID LINES + SUNKEN SLOTS + NOTE LABELS (signal: gridLines)
+    // 1. GRID LINES + ALPHABETICAL ROW LABELS (A–H) & COLUMN NUMBERS (1–8)
     if (RULES.signalVisible('gridLines', L)) {
       for (let r = 0; r < STATE.notes; r++) {
         const rowCol = this.rowColor(r);
@@ -131,32 +131,32 @@ const RENDER = {
           const rc = this.cellRect(r, s);
           c.fillStyle = s % 2 === 0 ? 'rgba(255,255,255,0.045)' : 'rgba(0,0,0,0.18)';
           c.fillRect(rc.x + 2, rc.y + 2, rc.w - 4, rc.h - 4);
-          c.strokeStyle = 'rgba(140, 195, 255, 0.22)';
+          c.strokeStyle = 'rgba(140, 195, 255, 0.24)';
           c.lineWidth = 1;
           c.strokeRect(Math.round(rc.x) + 0.5, Math.round(rc.y) + 0.5, Math.round(rc.w), Math.round(rc.h));
         }
-        // Left pitch badge in row color
+        // Left row badge: A, B, C, D, E, F, G, H (top → bottom)
         const rc0 = this.cellRect(r, 0);
         const cy = rc0.y + rc0.h / 2;
         c.fillStyle = rowCol;
-        c.fillRect(g.x0 - 42, cy - 9, 36, 18);
+        c.fillRect(g.x0 - 38, cy - 10, 30, 20);
         c.strokeStyle = '#000';
         c.lineWidth = 1.5;
-        c.strokeRect(g.x0 - 42, cy - 9, 36, 18);
+        c.strokeRect(g.x0 - 38, cy - 10, 30, 20);
         c.fillStyle = '#000';
-        c.font = `900 11px ${MONO}`;
+        c.font = `900 12px ${MONO}`;
         c.textAlign = 'center';
         c.textBaseline = 'middle';
-        c.fillText(RULES.noteName(r), g.x0 - 24, cy + 0.5);
+        c.fillText(RULES.rowLabel(r), g.x0 - 23, cy + 0.5);
       }
-      // Step numbers along top
-      c.font = `800 10px ${MONO}`;
-      c.fillStyle = 'rgba(255, 230, 0, 0.8)';
+      // Column numbers 1 – 8 along top
+      c.font = `900 11px ${MONO}`;
+      c.fillStyle = '#ffe600';
       c.textAlign = 'center';
       c.textBaseline = 'bottom';
       for (let s = 0; s < STATE.steps; s++) {
         const rc = this.cellRect(0, s);
-        c.fillText(String(s + 1).padStart(2, '0'), rc.x + rc.w / 2, g.y0 - 5);
+        c.fillText(String(s + 1), rc.x + rc.w / 2, g.y0 - 5);
       }
     }
 
@@ -182,18 +182,17 @@ const RENDER = {
       if (STATE.playing) c.fill(); else c.stroke();
     }
 
-    // 3. STORED NOTE PADS + FOLDED STICKERS (signal: notes)
+    // 3. STORED NOTE PADS (signal: notes)
     if (RULES.signalVisible('notes', L)) {
       for (let r = 0; r < STATE.notes; r++) {
         const rowCol = this.rowColor(r);
-        const noteLabel = RULES.noteName(r);
         for (let s = 0; s < STATE.steps; s++) {
           if (!STATE.pattern[r][s]) continue;
           const rc = this.cellRect(r, s);
           const sounding = STATE.playing && s === STATE.step;
-          const padM = sounding ? 3 : 6;
+          const padM = sounding ? 3 : 5;
           const px = rc.x + padM, py = rc.y + padM;
-          const pw = Math.max(12, rc.w - padM * 2), ph = Math.max(12, rc.h - padM * 2);
+          const pw = Math.max(10, rc.w - padM * 2), ph = Math.max(10, rc.h - padM * 2);
 
           drawBevelBox(c, px, py, pw, ph, sounding ? '#ffffff' : rowCol, true);
 
@@ -203,48 +202,21 @@ const RENDER = {
             c.strokeRect(px - 2, py - 2, pw + 4, ph + 4);
           }
 
-          // Symbol + note label inside pad so meaning is never color-only
+          // Coordinate label (A1 … H8) inside pad so meaning is never color-only
+          const coord = RULES.cellLabel(r, s);
           c.fillStyle = '#000';
-          c.font = `900 ${ pw > 46 ? 11 : 9 }px ${MONO}`;
+          c.font = `900 ${pw > 44 ? 11 : 9}px ${MONO}`;
           c.textAlign = 'center';
           c.textBaseline = 'middle';
-          const text = pw > 52 ? (sounding ? `★ ${noteLabel}` : noteLabel) : (sounding ? '★' : '●');
+          const text = pw > 52 ? (sounding ? `★ ${coord}` : coord) : coord;
           c.fillText(text, rc.x + rc.w / 2, rc.y + rc.h / 2 + 0.5);
-        }
-      }
-
-      // →n : folded notes to the right, ↑n : folded notes above
-      c.font = `900 11px ${MONO}`;
-      for (let r = 0; r < STATE.notes; r++) {
-        let n = 0;
-        for (let s = STATE.steps; s < STATE.pattern[r].length; s++) if (STATE.pattern[r][s]) n++;
-        if (n) {
-          const rc = this.cellRect(r, 0);
-          const bx = g.x0 + g.w + 4, by = rc.y + rc.h / 2 - 9;
-          drawBevelBox(c, bx, by, 30, 18, '#ffe600', true);
-          c.fillStyle = '#000';
-          c.textAlign = 'center';
-          c.textBaseline = 'middle';
-          c.fillText('→' + n, bx + 15, by + 9.5);
-        }
-      }
-      for (let s = 0; s < STATE.steps; s++) {
-        let n = 0;
-        for (let r = STATE.notes; r < STATE.pattern.length; r++) if (STATE.pattern[r][s]) n++;
-        if (n) {
-          const rc = this.cellRect(0, s);
-          const bx = rc.x + rc.w / 2 - 15, by = g.y0 - 22;
-          drawBevelBox(c, bx, by, 30, 18, '#b8ff01', true);
-          c.fillStyle = '#000';
-          c.textAlign = 'center';
-          c.textBaseline = 'middle';
-          c.fillText('↑' + n, bx + 15, by + 9.5);
         }
       }
     }
 
-    // 4. RIPPLES (signal: ripples) — neon rings + Y2K star crosshairs
+    // 4. RIPPLES (signal: ripples) — radius scales with window width
     const showRipples = RULES.signalVisible('ripples', L);
+    const maxR = RULES.rippleMaxRadius(STATE.gridW);
     for (let i = this.ripples.length - 1; i >= 0; i--) {
       const p = this.ripples[i];
       if (showRipples && p.row < STATE.notes && p.step < STATE.steps) {
@@ -257,7 +229,6 @@ const RENDER = {
         c.beginPath();
         c.arc(cx, cy, p.r, 0, Math.PI * 2);
         c.stroke();
-        // 4-point sparkle ticks
         c.strokeStyle = '#ffe600';
         c.lineWidth = 1.5;
         c.beginPath();
@@ -268,9 +239,9 @@ const RENDER = {
         c.stroke();
         c.restore();
       }
-      p.r += CONFIG.ripple.growPx;
+      p.r += CONFIG.ripple.growPx * (maxR / 90);
       p.alpha -= CONFIG.ripple.fade;
-      if (p.alpha <= 0 || p.r > CONFIG.ripple.maxRadius) this.ripples.splice(i, 1);
+      if (p.alpha <= 0 || p.r > maxR) this.ripples.splice(i, 1);
     }
 
     // 5. CLICK FLASH — always visible (acknowledges action even in 0% light)
@@ -278,7 +249,6 @@ const RENDER = {
       const f = this.flashes[i];
       const age = (now - f.t) / CONFIG.flashMs;
       if (age >= 1) { this.flashes.splice(i, 1); continue; }
-      if (f.row >= STATE.notes || f.step >= STATE.steps) continue;
       const rc = this.cellRect(f.row, f.step), a = 1 - age;
       const cx = rc.x + rc.w / 2, cy = rc.y + rc.h / 2;
       c.save();
@@ -313,7 +283,7 @@ const RENDER = {
         const [big, small] = this.badge.lines;
         c.save();
         c.globalAlpha = a;
-        c.font = `900 20px ${MONO}`;
+        c.font = `900 18px ${MONO}`;
         const wBig = c.measureText(big).width;
         c.font = `800 12px ${MONO}`;
         const wSmall = small ? c.measureText(small).width : 0;
@@ -331,7 +301,7 @@ const RENDER = {
 
         c.fillStyle = '#000';
         c.textAlign = 'center';
-        c.font = `900 19px ${MONO}`;
+        c.font = `900 17px ${MONO}`;
         c.fillText(big, STATE.stageW / 2, by + 34);
         if (small) {
           c.fillStyle = '#00089c';

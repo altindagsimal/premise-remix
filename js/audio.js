@@ -1,9 +1,9 @@
 /* =========================================================================
    SPATIAL RESONATOR · AUDIO
    -------------------------------------------------------------------------
-   Web Audio. Every note goes to the speakers directly (crisp dry signal)
-   AND into a soft, filtered room echo so the window size is audible
-   without muddying the melody.
+   Web Audio. Window size shapes both the PITCH (narrow = high/tiz,
+   wide = deep/bas) and the ROOM ECHO (small window = dry studio with
+   almost no echo; large window = spacious hall with clear acoustic echo).
    ========================================================================= */
 const AUDIO = {
   ctx: null,
@@ -26,15 +26,14 @@ const AUDIO = {
     this.master.gain.value = CONFIG.audio.volume;
     this.master.connect(this.ctx.destination);
 
-    // Soft, clean echo loop: delay → warm lowpass filter → feedback & low wet mix
+    // Echo loop controlled by window area (room size)
     this.delay = this.ctx.createDelay(2.0);
     this.filter = this.ctx.createBiquadFilter();
     this.filter.type = 'lowpass';
-    this.filter.frequency.value = 1500;
+    this.filter.frequency.value = 1800;
 
     this.feedback = this.ctx.createGain();
     this.wet = this.ctx.createGain();
-    this.wet.gain.value = CONFIG.audio.echoMix;
 
     this.delay.connect(this.filter);
     this.filter.connect(this.feedback);
@@ -45,33 +44,34 @@ const AUDIO = {
     this.updateRoom();
   },
 
-  // Called whenever the window or the light changes.
+  // Called whenever the window/frame size or light changes.
   updateRoom() {
     if (!this.ctx) return;
     const t = this.ctx.currentTime;
-    this.delay.delayTime.setTargetAtTime(RULES.echoSeconds(STATE.gridW, STATE.gridH), t, 0.08);
-    this.feedback.gain.setTargetAtTime(RULES.echoFeedbackFromLight(STATE.light), t, 0.08);
-    this.wet.gain.setTargetAtTime(CONFIG.audio.echoMix, t, 0.08);
+    this.delay.delayTime.setTargetAtTime(RULES.echoSeconds(STATE.gridW, STATE.gridH), t, 0.06);
+    this.feedback.gain.setTargetAtTime(RULES.echoFeedback(STATE.gridW, STATE.gridH), t, 0.06);
+    this.wet.gain.setTargetAtTime(RULES.echoMix(STATE.gridW, STATE.gridH), t, 0.06);
   },
 
   playNote(row) {
     this.init();
     if (!this.ctx) return;
+    this.updateRoom();
     const t = this.ctx.currentTime;
     const decay = RULES.decayFromLight(STATE.light);
 
     const osc = this.ctx.createOscillator();
     const env = this.ctx.createGain();
     osc.type = RULES.waveFromLight(STATE.light);
-    osc.frequency.setValueAtTime(RULES.frequencyForRow(row), t);
+    osc.frequency.setValueAtTime(RULES.frequencyForRow(row, STATE.gridW), t);
 
     env.gain.setValueAtTime(0.0001, t);
-    env.gain.exponentialRampToValueAtTime(1, t + 0.008);         // clean attack
-    env.gain.exponentialRampToValueAtTime(0.0001, t + decay);    // crisp decay
+    env.gain.exponentialRampToValueAtTime(1, t + 0.008);
+    env.gain.exponentialRampToValueAtTime(0.0001, t + decay);
 
     osc.connect(env);
-    env.connect(this.master);  // clear dry note
-    env.connect(this.delay);   // subtle room reflection
+    env.connect(this.master);  // dry note
+    env.connect(this.delay);   // window-size echo
     osc.start(t);
     osc.stop(t + decay + 0.04);
   },

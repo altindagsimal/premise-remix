@@ -4,15 +4,17 @@
    Reads the world outside the grid:
      1. the size of the browser window (and the keyboard "frame" alternative)
      2. the light in the room (camera brightness, or slider / keys)
-   STATE holds everything the system currently knows.
+   The 8×8 grid (01–08 × A–H) stays intact at every size; window dimensions
+   reshape the cell geometry, pitch register, ripple radius, and room echo.
    ========================================================================= */
 const STATE = {
   // window context
   winW: 0, winH: 0,          // browser window in px
   stageW: 0, stageH: 0,      // the canvas area in px
   frameW: 1, frameH: 1,      // keyboard/button frame (1 = full stage)
-  gridW: 0, gridH: 0,        // area the grid actually uses
-  steps: 0, notes: 0,        // grid size decided by the rules
+  gridW: 0, gridH: 0,        // active grid area in px
+  steps: CONFIG.grid.cols,   // 8 columns (01 – 08)
+  notes: CONFIG.grid.rows,   // 8 rows (A – H, top → bottom)
 
   // light context
   light: CONFIG.light.start, // 0 … 1
@@ -30,7 +32,7 @@ const STATE = {
 };
 
 const CONTEXT = {
-  stage: null,               // element whose size defines the grid (canvas)
+  stage: null,
   onMeasure: null,           // callback(changed, before)
   onLight: null,             // callback(prevLight, signalChanges)
   stream: null,
@@ -39,17 +41,17 @@ const CONTEXT = {
   // ---- 1. WINDOW ---------------------------------------------------------
   measure() {
     const rect = this.stage.getBoundingClientRect();
+    const before = { gridW: STATE.gridW, gridH: STATE.gridH };
     STATE.winW = window.innerWidth;
     STATE.winH = window.innerHeight;
     STATE.stageW = rect.width;
     STATE.stageH = rect.height;
-    STATE.gridW = rect.width * STATE.frameW;
-    STATE.gridH = rect.height * STATE.frameH;
+    STATE.gridW = Math.round(rect.width * STATE.frameW);
+    STATE.gridH = Math.round(rect.height * STATE.frameH);
+    STATE.steps = CONFIG.grid.cols;
+    STATE.notes = CONFIG.grid.rows;
 
-    const before = { steps: STATE.steps, notes: STATE.notes };
-    STATE.steps = RULES.stepsFromWidth(STATE.gridW);
-    STATE.notes = RULES.notesFromHeight(STATE.gridH);
-    const changed = before.steps !== STATE.steps || before.notes !== STATE.notes;
+    const changed = Math.abs(before.gridW - STATE.gridW) > 4 || Math.abs(before.gridH - STATE.gridH) > 4;
     if (this.onMeasure) this.onMeasure(changed, before);
   },
 
@@ -72,7 +74,6 @@ const CONTEXT = {
     STATE.light = clamp(value, 0, 1);
     STATE.lightSource = source;
 
-    // Which feedback signals appeared or disappeared with this change?
     const changes = [];
     for (const name of Object.keys(CONFIG.signals)) {
       const was = RULES.signalVisible(name, prev);
@@ -98,7 +99,6 @@ const CONTEXT = {
     this.sampleCamera(video, preview);
   },
 
-  // Average brightness of a tiny camera frame → light value.
   sampleCamera(video, preview) {
     if (!video.videoWidth) return;
     const pctx = preview.getContext('2d', { willReadFrequently: true });
@@ -110,7 +110,7 @@ const CONTEXT = {
     for (let i = 0; i < d.length; i += 4) {
       const y = 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2];
       sum += y;
-      d[i] = d[i + 1] = d[i + 2] = y;       // show the grey image the system measures
+      d[i] = d[i + 1] = d[i + 2] = y;
     }
     pctx.putImageData(img, 0, 0);
     STATE.luma = sum / (d.length / 4) / 255;

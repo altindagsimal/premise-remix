@@ -1,30 +1,36 @@
 /* =========================================================================
    SPATIAL RESONATOR · SEQUENCER
    -------------------------------------------------------------------------
-   Stores the pattern and plays it step by step.
-   The pattern is always the maximum size (maxNotes × maxSteps).
-   The window only decides which part of it is VISIBLE and PLAYED.
-   Notes outside the window are kept ("folded"), never deleted.
+   Stores the 8×8 pattern (rows A–H × steps 01–08) and plays it step by step.
+   Every cell stays visible at all window sizes so clicked squares never
+   disappear or shift to another coordinate.
    ========================================================================= */
 const SEQ = {
-  onStep: null,        // callback(step, playedRows)
+  onStep: null,
   timer: null,
 
   init() {
     const g = CONFIG.grid;
-    STATE.pattern = Array.from({ length: g.maxNotes }, () => Array(g.maxSteps).fill(false));
+    STATE.pattern = Array.from({ length: g.rows }, () => Array(g.cols).fill(false));
   },
 
-  // A starting melody so the first Play makes sound. Some notes sit far to
-  // the right / high up, so a small window already has folded notes.
+  // Default 8×8 melody across rows A–H and steps 01–08
   seed() {
-    const cells = [[0, 0], [2, 2], [3, 0], [4, 4], [6, 3], [8, 1], [10, 2], [11, 0], [12, 5], [14, 7]];
+    const cells = [
+      [0, 7], // H1 (step 1, row H)
+      [1, 5], // F2 (step 2, row F)
+      [2, 3], // D3 (step 3, row D)
+      [3, 1], // B4 (step 4, row B)
+      [4, 4], // E5 (step 5, row E)
+      [5, 2], // C6 (step 6, row C)
+      [6, 0], // A7 (step 7, row A)
+      [7, 5], // F8 (step 8, row F)
+    ];
     for (const [step, row] of cells) {
-      if (row < CONFIG.grid.maxNotes && step < CONFIG.grid.maxSteps) STATE.pattern[row][step] = true;
+      if (row < CONFIG.grid.rows && step < CONFIG.grid.cols) STATE.pattern[row][step] = true;
     }
   },
 
-  // Toggle one note. Returns { ok, on } or { ok: false, waitMs } (cooldown rule).
   toggle(row, step) {
     const now = performance.now();
     const wait = CONFIG.edits.cooldownMs - (now - STATE.lastEdit);
@@ -44,15 +50,6 @@ const SEQ = {
     return n;
   },
 
-  // Notes outside the visible grid (to the right or above).
-  countFolded() {
-    let n = 0;
-    STATE.pattern.forEach((row, r) => row.forEach((on, s) => {
-      if (on && (r >= STATE.notes || s >= STATE.steps)) n++;
-    }));
-    return n;
-  },
-
   play() {
     if (STATE.playing) return;
     STATE.playing = true;
@@ -64,7 +61,6 @@ const SEQ = {
     clearTimeout(this.timer);
   },
 
-  // The step length is read again every step, so light changes the tempo live.
   next() {
     this.tick();
     this.timer = setTimeout(() => { if (STATE.playing) this.next(); }, RULES.stepMs(STATE.light));

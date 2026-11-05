@@ -1,38 +1,61 @@
 /* =========================================================================
    SPATIAL RESONATOR · RULES
    -------------------------------------------------------------------------
-   How context becomes system behaviour. Each rule is one small function,
-   so a mapping can be swapped or changed in one place during a live demo.
+   How context becomes system behaviour. Every rule is one small function:
      CONTEXT IN  ─────────────►  SYSTEM OUT
-     grid width        →  steps (loop length)
-     grid height       →  notes (pitch range)
-     grid area         →  echo time ("size of the room")
-     light             →  tempo, decay, waveform, echo repeats
+     grid width        →  pitch shift (narrow = high/tiz, wide = deep/bas)
+     grid width        →  ripple spread (narrow = tight, wide = wide waves)
+     grid area         →  echo delay & echo level (small = dry, large = hall echo)
+     light             →  tempo, note decay, waveform
      light             →  which feedback signals stay visible
    ========================================================================= */
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 const lerp = (a, b, t) => a + (b - a) * t;
-const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
 const RULES = {
 
-  // ---- Window → grid ----------------------------------------------------
-  stepsFromWidth(px) {
-    const g = CONFIG.grid;
-    return clamp(Math.floor(px / g.pxPerStep), g.minSteps, g.maxSteps);
+  // ---- Alphabetical row & cell labels (top = A, bottom = H) -------------
+  rowLabel(row) {
+    return CONFIG.grid.rowLabels[row] || String.fromCharCode(65 + row);
   },
-  notesFromHeight(px) {
-    const g = CONFIG.grid;
-    return clamp(Math.floor(px / g.pxPerNote), g.minNotes, g.maxNotes);
-  },
-  // Bigger grid area = bigger "room" = longer echo.
-  echoSeconds(gridW, gridH) {
-    const a = CONFIG.audio;
-    const size = clamp((gridW * gridH) / a.referenceArea, 0, 1);
-    return lerp(a.echoMinSec, a.echoMaxSec, size);
+  cellLabel(row, step) {
+    return `${RULES.rowLabel(row)}${step + 1}`;
   },
 
-  // ---- Light → sound ----------------------------------------------------
+  // ---- Window geometry ratios (0 … 1) -----------------------------------
+  widthRatio(gridW) {
+    const g = CONFIG.grid;
+    return clamp((gridW - g.minWidthPx) / (g.maxWidthPx - g.minWidthPx), 0, 1);
+  },
+  roomSizeRatio(gridW, gridH) {
+    const g = CONFIG.grid;
+    return clamp((gridW * gridH - g.minAreaPx) / (g.maxAreaPx - g.minAreaPx), 0, 1);
+  },
+
+  // ---- Window → Pitch & Ripple size -------------------------------------
+  pitchMultiplier(gridW) {
+    const a = CONFIG.audio;
+    return lerp(a.narrowPitchMul, a.widePitchMul, RULES.widthRatio(gridW));
+  },
+  rippleMaxRadius(gridW) {
+    return lerp(CONFIG.ripple.minRadius, CONFIG.ripple.maxRadius, RULES.widthRatio(gridW));
+  },
+
+  // ---- Window area → Acoustic Echo (small = dry, large = clear echo) ----
+  echoSeconds(gridW, gridH) {
+    const a = CONFIG.audio;
+    return lerp(a.echoMinSec, a.echoMaxSec, RULES.roomSizeRatio(gridW, gridH));
+  },
+  echoMix(gridW, gridH) {
+    const a = CONFIG.audio;
+    return lerp(a.echoMixSmall, a.echoMixLarge, RULES.roomSizeRatio(gridW, gridH));
+  },
+  echoFeedback(gridW, gridH) {
+    const a = CONFIG.audio;
+    return lerp(a.echoFeedbackSmall, a.echoFeedbackLarge, RULES.roomSizeRatio(gridW, gridH));
+  },
+
+  // ---- Light → Sound ----------------------------------------------------
   bpmFromLight(light) {
     return Math.round(lerp(CONFIG.tempo.darkBpm, CONFIG.tempo.brightBpm, light));
   },
@@ -45,32 +68,27 @@ const RULES = {
   waveFromLight(light) {
     return light >= 0.5 ? CONFIG.audio.brightWave : CONFIG.audio.darkWave;
   },
-  echoFeedbackFromLight(light) {
-    return lerp(CONFIG.audio.echoFeedbackDark, CONFIG.audio.echoFeedbackBright, light);
-  },
 
-  // ---- Light → feedback (the Context × Feedback coupling) ----------------
+  // ---- Light → Feedback visibility (Context × Feedback coupling) --------
   signalVisible(name, light) {
     return light >= CONFIG.signals[name];
   },
 
-  // ---- Camera → light ---------------------------------------------------
+  // ---- Camera → Light ---------------------------------------------------
   lightFromLuma(luma) {
     const c = CONFIG.camera;
     return clamp((luma - c.darkLuma) / (c.brightLuma - c.darkLuma), 0, 1);
   },
 
-  // ---- Rows → pitch -----------------------------------------------------
+  // ---- Row (A=0 top … H=7 bottom) → Frequency ---------------------------
+  // Row A (top) is the highest note; Row H (bottom) is the lowest note.
   midiForRow(row) {
     const s = CONFIG.audio.scale;
-    const octave = Math.floor(row / s.length);
-    return CONFIG.audio.rootMidi + s[row % s.length] + 12 * octave;
+    const idx = (CONFIG.grid.rows - 1 - row) % s.length;
+    return CONFIG.audio.rootMidi + s[idx];
   },
-  frequencyForRow(row) {
-    return 440 * Math.pow(2, (RULES.midiForRow(row) - 69) / 12);
-  },
-  noteName(row) {
-    const m = RULES.midiForRow(row);
-    return NOTE_NAMES[m % 12] + (Math.floor(m / 12) - 1);
+  frequencyForRow(row, gridW = STATE.gridW) {
+    const baseHz = 440 * Math.pow(2, (RULES.midiForRow(row) - 69) / 12);
+    return baseHz * RULES.pitchMultiplier(gridW);
   },
 };
