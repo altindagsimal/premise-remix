@@ -57,8 +57,8 @@ const CONFIG = {
 
   // ---------- 4. SOUND & WINDOW-DRIVEN ECHO ------------------------------
   audio: {
-    rootMidi: 57,                 // base pitch (A3 = 220 Hz)
-    scale: [0, 2, 4, 7, 9, 12, 14, 16], // 8 pleasant pentatonic notes for rows H → A
+    rootMidi: 48,                 // base pitch (C3 = 130.81 Hz)
+    scale: [0, 2, 4, 5, 7, 9, 11, 12], // 8 ascending notes across columns 1 → 8
     volume: 0.24,
     narrowPitchMul: 1.45,         // narrow window → higher, brighter pitch
     widePitchMul: 0.72,           // wide window → deeper, lower bass pitch

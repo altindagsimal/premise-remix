@@ -150,11 +150,12 @@
     }
     RENDER.addFlash(row, step, res.on ? 'on' : 'off');
     if (res.on) {
-      AUDIO.playNote(row);
+      AUDIO.playNote(row, step);
       RENDER.addRipple(row, step);
     }
+    const hz = Math.round(RULES.frequencyForCell(row, step, STATE.gridW));
     const hidden = res.on && !RULES.signalVisible('notes', STATE.light) ? ' (DARK MODE: LISTEN)' : '';
-    announce(`${res.on ? '+ ADDED' : '− REMOVED'} PAD ${label}${hidden} · ${echoDesc()}`);
+    announce(`${res.on ? '+ ADDED' : '− REMOVED'} PAD ${label} (${hz} Hz)${hidden} · ${echoDesc()}`);
     updatePanel();
   }
 

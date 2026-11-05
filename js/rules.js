@@ -80,15 +80,21 @@ const RULES = {
     return clamp((luma - c.darkLuma) / (c.brightLuma - c.darkLuma), 0, 1);
   },
 
-  // ---- Row (A=0 top … H=7 bottom) → Frequency ---------------------------
-  // Row A (top) is the highest note; Row H (bottom) is the lowest note.
-  midiForRow(row) {
+  // ---- Cell (row A–H × step 1–8) → Unique Frequency ----------------------
+  // Row (A=0 top … H=7 bottom) sets the register/octave;
+  // Column (1 … 8, left → right) steps up through the scale so EVERY square
+  // from A1 to H8 has its own distinct musical tone!
+  midiForCell(row, step = 0) {
     const s = CONFIG.audio.scale;
-    const idx = (CONFIG.grid.rows - 1 - row) % s.length;
-    return CONFIG.audio.rootMidi + s[idx];
+    const rowOffset = (CONFIG.grid.rows - 1 - row) * 3; // H (bottom) = low, A (top) = high
+    const stepOffset = s[step % s.length];               // 1 → 8 rises across the row
+    return CONFIG.audio.rootMidi + rowOffset + stepOffset;
+  },
+  frequencyForCell(row, step = 0, gridW = STATE.gridW) {
+    const baseHz = 440 * Math.pow(2, (RULES.midiForCell(row, step) - 69) / 12);
+    return baseHz * RULES.pitchMultiplier(gridW);
   },
   frequencyForRow(row, gridW = STATE.gridW) {
-    const baseHz = 440 * Math.pow(2, (RULES.midiForRow(row) - 69) / 12);
-    return baseHz * RULES.pitchMultiplier(gridW);
+    return RULES.frequencyForCell(row, 0, gridW);
   },
 };

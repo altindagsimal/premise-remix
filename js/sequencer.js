@@ -71,7 +71,7 @@ const SEQ = {
     const played = [];
     for (let r = 0; r < STATE.notes; r++) {
       if (STATE.pattern[r][STATE.step]) {
-        AUDIO.playNote(r);
+        AUDIO.playNote(r, STATE.step);
         played.push(r);
       }
     }

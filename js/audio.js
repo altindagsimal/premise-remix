@@ -53,7 +53,7 @@ const AUDIO = {
     this.wet.gain.setTargetAtTime(RULES.echoMix(STATE.gridW, STATE.gridH), t, 0.06);
   },
 
-  playNote(row) {
+  playNote(row, step = 0) {
     this.init();
     if (!this.ctx) return;
     this.updateRoom();
@@ -63,7 +63,7 @@ const AUDIO = {
     const osc = this.ctx.createOscillator();
     const env = this.ctx.createGain();
     osc.type = RULES.waveFromLight(STATE.light);
-    osc.frequency.setValueAtTime(RULES.frequencyForRow(row, STATE.gridW), t);
+    osc.frequency.setValueAtTime(RULES.frequencyForCell(row, step, STATE.gridW), t);
 
     env.gain.setValueAtTime(0.0001, t);
     env.gain.exponentialRampToValueAtTime(1, t + 0.008);
