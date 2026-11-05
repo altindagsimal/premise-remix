@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spatial Resonator · Context × Feedback</title>
+  <meta name="description" content="A step sequencer shaped by your browser window and the light in your room. NMED 3203 premise remix: Context × Feedback.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header class="top">
+    <div class="title">
+      <h1>Spatial Resonator</h1>
+      <p class="premises">Context × Feedback · NMED 3203 premise remix</p>
+    </div>
+    <p class="instruction">Click cells to place notes and press Play, then resize the window or dim the light and read what changes.</p>
+  </header>
+
+  <main class="layout">
+    <section class="stage-col" aria-label="Instrument">
+      <div class="stage-wrap">
+        <canvas id="stage" tabindex="0"
+          aria-label="Note grid. Arrow keys move the cursor, Space adds or removes a note."
+          aria-describedby="keys"></canvas>
+      </div>
+
+      <p class="last-change" id="last-change" aria-hidden="true">Ready.</p>
+
+      <div class="controls">
+        <button id="play-btn" class="btn primary" aria-pressed="false">▶ Play <kbd>P</kbd></button>
+
+        <div class="light-control">
+          <label for="light-slider">Room light <span id="light-out">70%</span> <kbd>D</kbd><kbd>B</kbd></label>
+          <input id="light-slider" type="range" min="0" max="100" step="1" value="70">
+        </div>
+
+        <button id="cam-btn" class="btn" aria-pressed="false">◉ Measure light with camera <kbd>C</kbd></button>
+
+        <div class="frame-buttons" role="group" aria-label="Frame: an alternative to resizing the window">
+          <button class="btn small" data-frame="-1,0" aria-label="Narrower frame (N)">Narrower <kbd>N</kbd></button>
+          <button class="btn small" data-frame="1,0" aria-label="Wider frame (W)">Wider <kbd>W</kbd></button>
+          <button class="btn small" data-frame="0,-1" aria-label="Shorter frame (S)">Shorter <kbd>S</kbd></button>
+          <button class="btn small" data-frame="0,1" aria-label="Taller frame (T)">Taller <kbd>T</kbd></button>
+          <button class="btn small" data-frame="reset" aria-label="Reset frame (R)">Full <kbd>R</kbd></button>
+        </div>
+
+        <button id="clear-btn" class="btn small">Clear</button>
+        <button id="demo-btn" class="btn small">Demo melody</button>
+      </div>
+
+      <p id="keys" class="keys">Keys: arrows move · Space add/remove · P play · D/B darker/brighter · N/W narrower/wider · S/T shorter/taller · R full frame · C camera</p>
+    </section>
+
+    <aside class="panel" aria-label="What the system knows">
+      <h2>What the system knows</h2>
+      <dl class="readout">
+        <dt>Window</dt><dd id="s-window">–</dd>
+        <dt>Frame</dt><dd id="s-frame">–</dd>
+        <dt>Grid</dt><dd id="s-grid">–</dd>
+        <dt>Pitch range</dt><dd id="s-range">–</dd>
+        <dt>Light</dt><dd id="s-light">–</dd>
+        <dt>Tempo / tone</dt><dd id="s-tempo">–</dd>
+        <dt>Echo (room)</dt><dd id="s-echo">–</dd>
+        <dt>Pattern</dt><dd id="s-pattern">–</dd>
+        <dt>Playback</dt><dd id="s-play">–</dd>
+      </dl>
+
+      <h2>Signals on screen</h2>
+      <ul class="signals">
+        <li data-signal="gridLines"><span class="mark" aria-hidden="true"></span><span>Grid lines &amp; note names</span><span class="need"></span></li>
+        <li data-signal="ripples"><span class="mark" aria-hidden="true"></span><span>Ripples</span><span class="need"></span></li>
+        <li data-signal="playhead"><span class="mark" aria-hidden="true"></span><span>Playhead ▲</span><span class="need"></span></li>
+        <li data-signal="notes"><span class="mark" aria-hidden="true"></span><span>Note markers, folded →n ↑n</span><span class="need"></span></li>
+      </ul>
+      <p class="always">Always on: sound, this panel, and the +/− flash when you edit.</p>
+
+      <figure id="cam-figure" hidden>
+        <canvas id="cam-preview" width="64" height="48" aria-hidden="true"></canvas>
+        <figcaption>What the camera measures: only the average brightness of this grey image. The video stays on your device.</figcaption>
+      </figure>
+      <video id="cam-video" class="offscreen" playsinline muted aria-hidden="true"></video>
+
+      <footer class="sources">
+        <h2>Sources</h2>
+        <p>Theory: Dey (2001) · Hutchins, Hollan &amp; Norman (1985) · Dourish (2004).</p>
+        <p>Remix of the IMA lab experiments <em>Letter Rain</em> (Context) and <em>Mini Sequencer</em> (Feedback) by Mert Seven.</p>
+        <p><a href="https://github.com/altindagsimal/premise-remix#readme">README, rationale &amp; credits</a></p>
+      </footer>
+    </aside>
+  </main>
+
+  <p id="live" class="sr-only" aria-live="polite"></p>
+
+  <!-- Load order matters: config → rules → state/context → audio → sequencer → render → main -->
+  <script src="js/config.js"></script>
+  <script src="js/rules.js"></script>
+  <script src="js/context.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/sequencer.js"></script>
+  <script src="js/render.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
