@@ -1,8 +1,8 @@
 /* =========================================================================
-   SPATIAL RESONATOR · MAIN
+   SPATIAL RESONATOR · MAIN (Win95 / Winamp / Y2K Edition)
    -------------------------------------------------------------------------
    Wires inputs (pointer, keyboard, buttons, camera) to the system and
-   writes the system's state in words (status panel + announcements).
+   updates the compact Winamp LED deck + status bar.
    KEYS (change them in KEYMAP below):
      arrows move · Space/Enter add/remove · P play · D/B darker/brighter
      N/W narrower/wider · S/T shorter/taller · R reset frame · C camera
@@ -17,52 +17,65 @@
   const camBtn = $('cam-btn');
 
   const SIGNAL_LABELS = {
-    gridLines: 'grid lines',
-    ripples: 'ripples',
-    playhead: 'playhead',
-    notes: 'note markers',
+    gridLines: 'GRID',
+    ripples: 'WAVE',
+    playhead: 'HEAD',
+    notes: 'PADS',
   };
 
   // ---------------------------------------------------------------------
-  // FEEDBACK IN WORDS
+  // COMPACT LED FEEDBACK
   // ---------------------------------------------------------------------
   function announce(msg) {
     $('live').textContent = msg;         // screen readers
-    $('last-change').textContent = msg;  // everyone
+    $('last-change').textContent = msg;  // LED ticker
   }
 
   function playbackText() {
-    if (STATE.playing) return `▶ Playing · step ${STATE.step + 1} / ${STATE.steps}`;
-    if (SEQ.countStored() === 0) return '■ Stopped · pattern is empty';
-    if (STATE.step < 0) return '■ Ready · press Play';
-    return '❚❚ Paused · notes are kept';
+    if (STATE.playing) return `▶ PLAY ${String(STATE.step + 1).padStart(2, '0')}/${String(STATE.steps).padStart(2, '0')}`;
+    if (SEQ.countStored() === 0) return '■ EMPTY';
+    if (STATE.step < 0) return '■ READY';
+    return '❚❚ PAUSED';
   }
 
   let lastFolded = 0;
   function updatePanel() {
     const pct = Math.round(STATE.light * 100);
-    $('s-window').textContent = `${STATE.winW} × ${STATE.winH} px`;
-    $('s-frame').textContent = `${Math.round(STATE.frameW * 100)}% × ${Math.round(STATE.frameH * 100)}%`;
-    $('s-grid').textContent = `${STATE.steps} steps × ${STATE.notes} notes`;
-    $('s-range').textContent = `${RULES.noteName(0)} – ${RULES.noteName(STATE.notes - 1)}`;
-    $('s-light').textContent = STATE.cameraOn
-      ? `${pct}% · camera (raw ${STATE.luma == null ? '–' : Math.round(STATE.luma * 100) + '%'})`
-      : `${pct}% · slider / keys`;
-    $('s-tempo').textContent =
-      `${RULES.bpmFromLight(STATE.light)} BPM · ${RULES.waveFromLight(STATE.light)} · rings ${RULES.decayFromLight(STATE.light).toFixed(2)} s`;
-    $('s-echo').textContent =
-      `${RULES.echoSeconds(STATE.gridW, STATE.gridH).toFixed(2)} s · ${Math.round(RULES.echoFeedbackFromLight(STATE.light) * 100)}% repeats`;
+    const wave = RULES.waveFromLight(STATE.light) === 'triangle' ? 'TRI' : 'SINE';
     const stored = SEQ.countStored(), folded = SEQ.countFolded();
     lastFolded = folded;
-    $('s-pattern').textContent = `${stored} stored · ${stored - folded} playing · ${folded} folded`;
-    $('s-play').textContent = playbackText();
 
+    // Desktop teal dims with room light
+    const r = Math.round(lerp(4, 0, STATE.light));
+    const g = Math.round(lerp(18, 128, STATE.light));
+    const b = Math.round(lerp(28, 128, STATE.light));
+    document.body.style.setProperty('--desktop', `rgb(${r},${g},${b})`);
+
+    // Winamp LED chips
+    $('s-play').textContent = playbackText();
+    $('s-tempo').textContent = `${RULES.bpmFromLight(STATE.light)} BPM · ${wave}`;
+    $('s-grid').textContent = `${STATE.steps}×${STATE.notes} GRID`;
+    $('s-echo').textContent = `ECHO ${RULES.echoSeconds(STATE.gridW, STATE.gridH).toFixed(2)}s`;
+    $('s-pattern').textContent = `${stored - folded} ACTIVE · →${folded} FOLDED`;
+
+    // Bottom status bar cells
+    $('s-window').textContent = `WIN: ${STATE.winW}×${STATE.winH}`;
+    $('s-frame').textContent = `FRAME: ${Math.round(STATE.frameW * 100)}%×${Math.round(STATE.frameH * 100)}%`;
+    $('s-range').textContent = `PITCH: ${RULES.noteName(0)}–${RULES.noteName(STATE.notes - 1)}`;
+    $('s-light').textContent = STATE.cameraOn
+      ? `LIGHT: ${pct}% (CAM)`
+      : `LIGHT: ${pct}%`;
+    if ($('s-cam-luma')) {
+      $('s-cam-luma').textContent = STATE.luma == null ? 'CAM' : `${Math.round(STATE.luma * 100)}%`;
+    }
+
+    // 4 Signal LED pills
     document.querySelectorAll('[data-signal]').forEach((li) => {
       const name = li.dataset.signal, t = CONFIG.signals[name];
       const on = RULES.signalVisible(name, STATE.light);
       li.classList.toggle('off', !on);
       li.querySelector('.mark').textContent = on ? '✓' : '✕';
-      li.querySelector('.need').textContent = t > 1 ? 'removed' : t <= 0 ? 'always' : `needs ≥ ${Math.round(t * 100)}%`;
+      li.querySelector('.need').textContent = t > 1 ? 'OFF' : t <= 0 ? 'ON' : `≥${Math.round(t * 100)}%`;
     });
 
     slider.value = pct;
@@ -73,7 +86,7 @@
   // ---------------------------------------------------------------------
   // CONTEXT → FEEDBACK
   // ---------------------------------------------------------------------
-  let resizeSource = 'Window';
+  let resizeSource = 'WINDOW';
   let burstFrom = null, burstTimer = null;
   let ready = false;
 
@@ -82,30 +95,26 @@
     AUDIO.updateRoom();
     if (changed && before.steps && ready) {
       if (!burstFrom) burstFrom = { steps: before.steps, notes: before.notes, folded: lastFolded, source: resizeSource };
-      RENDER.showBadge([`${before.steps} × ${before.notes}  →  ${STATE.steps} × ${STATE.notes}`, 'steps × notes']);
+      RENDER.showBadge([`${before.steps} × ${before.notes}  →  ${STATE.steps} × ${STATE.notes}`, 'STEPS × NOTES']);
       clearTimeout(burstTimer);
       burstTimer = setTimeout(() => { describeGridChange(burstFrom); burstFrom = null; }, CONFIG.grid.resizeAnnounceMs);
     }
-    resizeSource = 'Window';
+    resizeSource = 'WINDOW';
     updatePanel();
   };
 
   function describeGridChange(from) {
     const parts = [];
     if (STATE.steps !== from.steps) {
-      parts.push(STATE.steps > from.steps
-        ? `wider: ${from.steps} → ${STATE.steps} steps, longer loop`
-        : `narrower: ${from.steps} → ${STATE.steps} steps, shorter loop`);
+      parts.push(`${from.steps}→${STATE.steps} STEPS`);
     }
     if (STATE.notes !== from.notes) {
-      parts.push(STATE.notes > from.notes
-        ? `taller: ${from.notes} → ${STATE.notes} notes, up to ${RULES.noteName(STATE.notes - 1)}`
-        : `shorter: ${from.notes} → ${STATE.notes} notes, up to ${RULES.noteName(STATE.notes - 1)}`);
+      parts.push(`${from.notes}→${STATE.notes} NOTES (${RULES.noteName(0)}–${RULES.noteName(STATE.notes - 1)})`);
     }
     const df = SEQ.countFolded() - from.folded;
-    if (df > 0) parts.push(`${df} note${df > 1 ? 's' : ''} folded outside (kept, not deleted)`);
-    if (df < 0) parts.push(`${-df} folded note${df < -1 ? 's' : ''} came back`);
-    if (parts.length) announce(`${from.source} ${parts.join('; ')}.`);
+    if (df > 0) parts.push(`+${df} FOLDED (KEPT)`);
+    if (df < 0) parts.push(`${-df} UNFOLDED`);
+    if (parts.length) announce(`${from.source}: ${parts.join(' · ')}`);
   }
 
   CONTEXT.onLight = (prev, changes) => {
@@ -114,13 +123,11 @@
       const off = changes.filter((c) => !c.visible).map((c) => SIGNAL_LABELS[c.name]);
       const on = changes.filter((c) => c.visible).map((c) => SIGNAL_LABELS[c.name]);
       const pct = Math.round(STATE.light * 100);
-      let msg = `Light ${pct}%: `;
-      if (off.length) msg += `${off.join(', ')} faded out`;
-      if (on.length) msg += `${off.length ? '; ' : ''}${on.join(', ')} came back`;
-      announce(msg + '. Sound and text stay.');
+      const detail = off.length ? `HIDDEN: ${off.join(', ')}` : `SHOWN: ${on.join(', ')}`;
+      announce(`LIGHT ${pct}% · ${detail} · AUDIO & LED STAY ON`);
       RENDER.showBadge([
-        STATE.light < prev ? `darker · ${pct}%` : `brighter · ${pct}%`,
-        off.length ? `− ${off.join(', ')}` : `+ ${on.join(', ')}`,
+        STATE.light < prev ? `LIGHT ${pct}% ↓` : `LIGHT ${pct}% ↑`,
+        detail,
       ]);
     }
     updatePanel();
@@ -139,13 +146,13 @@
     const res = SEQ.toggle(row, step);
     if (!res.ok) {
       RENDER.addFlash(row, step, 'blocked');
-      announce(`Too fast: wait ${(res.waitMs / 1000).toFixed(1)} s before the next edit.`);
+      announce(`WAIT ${(res.waitMs / 1000).toFixed(1)}s BEFORE NEXT EDIT`);
       return;
     }
     RENDER.addFlash(row, step, res.on ? 'on' : 'off');
-    if (res.on) AUDIO.playNote(row); // immediate preview
-    const hidden = res.on && !RULES.signalVisible('notes', STATE.light) ? ' Too dark to show it: listen.' : '';
-    announce(`${res.on ? 'Added' : 'Removed'} ${RULES.noteName(row)} at step ${step + 1}.${hidden}`);
+    if (res.on) AUDIO.playNote(row);
+    const hidden = res.on && !RULES.signalVisible('notes', STATE.light) ? ' (DARK MODE: LISTEN)' : '';
+    announce(`${res.on ? '+ ADDED' : '− REMOVED'} ${RULES.noteName(row)} @ STEP ${step + 1}${hidden}`);
     updatePanel();
   }
 
@@ -160,45 +167,47 @@
     STATE.cursor.row = clamp(STATE.cursor.row + dRow, 0, STATE.notes - 1);
     STATE.cursor.step = clamp(STATE.cursor.step + dStep, 0, STATE.steps - 1);
     const { row, step } = STATE.cursor;
-    announce(`Cursor: ${RULES.noteName(row)}, step ${step + 1}, ${STATE.pattern[row][step] ? 'has a note' : 'empty'}.`);
+    announce(`CURSOR: ${RULES.noteName(row)} · STEP ${step + 1} [${STATE.pattern[row][step] ? 'ON' : 'EMPTY'}]`);
   }
 
   function togglePlay() {
     AUDIO.init();
     if (STATE.playing) {
       SEQ.pause();
-      announce(`Paused. ${SEQ.countStored()} notes are kept.`);
+      announce(`PAUSED · ${SEQ.countStored()} NOTES KEPT`);
     } else {
       SEQ.play();
-      announce(`Playing at ${RULES.bpmFromLight(STATE.light)} BPM.`);
+      announce(`PLAYING @ ${RULES.bpmFromLight(STATE.light)} BPM`);
     }
     playBtn.setAttribute('aria-pressed', String(STATE.playing));
-    playBtn.firstChild.textContent = STATE.playing ? '❚❚ Pause ' : '▶ Play ';
+    playBtn.firstChild.textContent = STATE.playing ? '❚❚ PAUSE ' : '▶ PLAY ';
     updatePanel();
   }
 
   function nudgeLight(dir) {
     if (STATE.cameraOn) {
-      announce('The camera is measuring the light. Stop the camera (C) to use the slider or keys.');
+      announce('CAM ACTIVE — PRESS [C] TO USE SLIDER OR D/B KEYS');
       return;
     }
     CONTEXT.setLight(STATE.light + dir * CONFIG.light.keyStep, 'manual');
   }
 
   function changeFrame(dw, dh) {
-    resizeSource = 'Frame';
+    ready = true;
+    resizeSource = 'FRAME';
     CONTEXT.changeFrame(dw * CONFIG.frame.step, dh * CONFIG.frame.step);
   }
 
   function resetFrame() {
-    resizeSource = 'Frame';
+    ready = true;
+    resizeSource = 'FRAME';
     CONTEXT.resetFrame();
-    announce('Frame reset to the full window.');
+    announce('FRAME RESET TO 100% WINDOW');
   }
 
   function updateCameraUI() {
     camBtn.setAttribute('aria-pressed', String(STATE.cameraOn));
-    camBtn.firstChild.textContent = STATE.cameraOn ? '■ Stop camera ' : '◉ Measure light with camera ';
+    camBtn.firstChild.textContent = STATE.cameraOn ? '■ STOP CAM ' : '◉ CAM ';
     slider.disabled = STATE.cameraOn;
     $('cam-figure').hidden = !STATE.cameraOn;
   }
@@ -206,18 +215,18 @@
   async function toggleCamera() {
     if (STATE.cameraOn) {
       CONTEXT.stopCamera(video);
-      announce('Camera off. Use the slider or D / B keys for light.');
+      announce('CAMERA OFF · SLIDER / D-B KEYS ACTIVE');
       updateCameraUI();
       updatePanel();
       return;
     }
     camBtn.disabled = true;
-    announce('Asking for camera permission…');
+    announce('REQUESTING CAMERA PERMISSION…');
     try {
       await CONTEXT.startCamera(video, preview);
-      announce('Camera on. Only the average brightness is used; the video never leaves your device.');
+      announce('CAMERA ON · MEASURING ROOM BRIGHTNESS');
     } catch (err) {
-      announce(`Camera unavailable (${err.name || err.message}). Use the slider or D / B keys instead.`);
+      announce(`CAMERA UNAVAILABLE · USE SLIDER OR D/B KEYS`);
     } finally {
       camBtn.disabled = false;
       updateCameraUI();
@@ -225,11 +234,18 @@
     }
   }
 
+  function restoreDemo() {
+    SEQ.clear();
+    SEQ.seed();
+    announce('DEMO MELODY LOADED');
+    updatePanel();
+  }
+
   // ---------------------------------------------------------------------
   // INPUTS
   // ---------------------------------------------------------------------
-  // Pointer / touch
   canvas.addEventListener('pointerdown', (e) => {
+    ready = true;
     const r = canvas.getBoundingClientRect();
     const cell = RENDER.cellAt(e.clientX - r.left, e.clientY - r.top);
     if (!cell) return;
@@ -238,7 +254,6 @@
     editCell(cell.row, cell.step);
   });
 
-  // Keyboard (alternative to pointer, window dragging and camera)
   const KEYMAP = {
     arrowleft: () => moveCursor(0, -1),
     arrowright: () => moveCursor(0, 1),
@@ -247,12 +262,12 @@
     ' ': () => { STATE.cursorVisible = true; clampCursor(); editCell(STATE.cursor.row, STATE.cursor.step); },
     enter: () => KEYMAP[' '](),
     p: togglePlay,
-    d: () => nudgeLight(-1),    // darker
-    b: () => nudgeLight(1),     // brighter
-    n: () => changeFrame(-1, 0), // narrower
-    w: () => changeFrame(1, 0),  // wider
-    s: () => changeFrame(0, -1), // shorter
-    t: () => changeFrame(0, 1),  // taller
+    d: () => nudgeLight(-1),
+    b: () => nudgeLight(1),
+    n: () => changeFrame(-1, 0),
+    w: () => changeFrame(1, 0),
+    s: () => changeFrame(0, -1),
+    t: () => changeFrame(0, 1),
     r: resetFrame,
     c: toggleCamera,
   };
@@ -261,19 +276,20 @@
     if (e.metaKey || e.ctrlKey) return;
     const tag = e.target.tagName;
     const key = e.key.toLowerCase();
-    if (tag === 'INPUT' && key.startsWith('arrow')) return;                     // let the slider use arrows
-    if ((tag === 'BUTTON' || tag === 'A') && (key === ' ' || key === 'enter')) return; // native click
+    if (tag === 'INPUT' && key.startsWith('arrow')) return;
+    if ((tag === 'BUTTON' || tag === 'A') && (key === ' ' || key === 'enter')) return;
     const action = KEYMAP[key];
     if (!action) return;
     e.preventDefault();
     action();
   });
 
-  // Buttons
   playBtn.addEventListener('click', togglePlay);
   camBtn.addEventListener('click', toggleCamera);
-  $('clear-btn').addEventListener('click', () => { SEQ.clear(); announce('Pattern cleared.'); updatePanel(); });
-  $('demo-btn').addEventListener('click', () => { SEQ.clear(); SEQ.seed(); announce('Demo melody restored.'); updatePanel(); });
+  $('clear-btn').addEventListener('click', () => { SEQ.clear(); announce('PATTERN CLEARED'); updatePanel(); });
+  $('demo-btn').addEventListener('click', restoreDemo);
+  if ($('demo-top-btn')) $('demo-top-btn').addEventListener('click', restoreDemo);
+
   document.querySelectorAll('[data-frame]').forEach((btn) => {
     btn.addEventListener('click', () => {
       if (btn.dataset.frame === 'reset') return resetFrame();
@@ -283,7 +299,6 @@
   });
   slider.addEventListener('input', () => CONTEXT.setLight(slider.value / 100, 'manual'));
 
-  // Window size → measure (also catches phone rotation and layout changes)
   let firstObserve = true;
   new ResizeObserver(() => {
     CONTEXT.measure();

@@ -9,86 +9,120 @@
 </head>
 <body>
 
-  <header class="top">
-    <div class="title">
-      <h1>Spatial Resonator</h1>
-      <p class="premises">Context × Feedback · NMED 3203 premise remix</p>
+  <div class="win95-window">
+    <!-- WIN95 TITLE BAR -->
+    <header class="titlebar">
+      <div class="titlebar-left">
+        <span class="win-icon" aria-hidden="true">★</span>
+        <h1>SPATIAL_RESONATOR.EXE</h1>
+        <span class="premise-tag">CONTEXT × FEEDBACK</span>
+      </div>
+      <div class="titlebar-btns" role="group" aria-label="Quick frame size">
+        <button class="win-btn" data-frame="-1,-1" title="Shrink frame (N/S)" aria-label="Shrink frame">_</button>
+        <button class="win-btn" data-frame="reset" title="Full window frame (R)" aria-label="Full window frame">□</button>
+        <button class="win-btn close" id="demo-top-btn" title="Reload demo melody" aria-label="Reload demo melody">★</button>
+      </div>
+    </header>
+
+    <!-- SINGLE-LINE INSTRUCTION BANNER -->
+    <div class="subbar">
+      <p class="instruction">★ Click pads to place notes and press <b>PLAY</b> — resize the window or dim the light to reshape the loop.</p>
     </div>
-    <p class="instruction">Click cells to place notes and press Play, then resize the window or dim the light and read what changes.</p>
-  </header>
 
-  <main class="layout">
-    <section class="stage-col" aria-label="Instrument">
-      <div class="stage-wrap">
-        <canvas id="stage" tabindex="0"
-          aria-label="Note grid. Arrow keys move the cursor, Space adds or removes a note."
-          aria-describedby="keys"></canvas>
+    <!-- WINAMP-STYLE LED FEEDBACK DECK (replaces text clutter) -->
+    <section class="lcd-deck" aria-label="System state and active signals">
+      <div class="lcd-main">
+        <div class="lcd-top-row">
+          <span class="lcd-play" id="s-play">■ READY</span>
+          <span class="lcd-bpm" id="s-tempo">116 BPM · TRI</span>
+          <span class="lcd-chip" id="s-grid">10×8 GRID</span>
+          <span class="lcd-chip" id="s-echo">ECHO 0.25s</span>
+          <span class="lcd-chip" id="s-pattern">10 NOTES · →4 FOLDED</span>
+        </div>
+        <p class="lcd-ticker" id="last-change" aria-hidden="true">READY — CLICK ANY PAD OR PRESS [P] TO PLAY</p>
       </div>
 
-      <p class="last-change" id="last-change" aria-hidden="true">Ready.</p>
-
-      <div class="controls">
-        <button id="play-btn" class="btn primary" aria-pressed="false">▶ Play <kbd>P</kbd></button>
-
-        <div class="light-control">
-          <label for="light-slider">Room light <span id="light-out">70%</span> <kbd>D</kbd><kbd>B</kbd></label>
-          <input id="light-slider" type="range" min="0" max="100" step="1" value="70">
-        </div>
-
-        <button id="cam-btn" class="btn" aria-pressed="false">◉ Measure light with camera <kbd>C</kbd></button>
-
-        <div class="frame-buttons" role="group" aria-label="Frame: an alternative to resizing the window">
-          <button class="btn small" data-frame="-1,0" aria-label="Narrower frame (N)">Narrower <kbd>N</kbd></button>
-          <button class="btn small" data-frame="1,0" aria-label="Wider frame (W)">Wider <kbd>W</kbd></button>
-          <button class="btn small" data-frame="0,-1" aria-label="Shorter frame (S)">Shorter <kbd>S</kbd></button>
-          <button class="btn small" data-frame="0,1" aria-label="Taller frame (T)">Taller <kbd>T</kbd></button>
-          <button class="btn small" data-frame="reset" aria-label="Reset frame (R)">Full <kbd>R</kbd></button>
-        </div>
-
-        <button id="clear-btn" class="btn small">Clear</button>
-        <button id="demo-btn" class="btn small">Demo melody</button>
-      </div>
-
-      <p id="keys" class="keys">Keys: arrows move · Space add/remove · P play · D/B darker/brighter · N/W narrower/wider · S/T shorter/taller · R full frame · C camera</p>
-    </section>
-
-    <aside class="panel" aria-label="What the system knows">
-      <h2>What the system knows</h2>
-      <dl class="readout">
-        <dt>Window</dt><dd id="s-window">–</dd>
-        <dt>Frame</dt><dd id="s-frame">–</dd>
-        <dt>Grid</dt><dd id="s-grid">–</dd>
-        <dt>Pitch range</dt><dd id="s-range">–</dd>
-        <dt>Light</dt><dd id="s-light">–</dd>
-        <dt>Tempo / tone</dt><dd id="s-tempo">–</dd>
-        <dt>Echo (room)</dt><dd id="s-echo">–</dd>
-        <dt>Pattern</dt><dd id="s-pattern">–</dd>
-        <dt>Playback</dt><dd id="s-play">–</dd>
-      </dl>
-
-      <h2>Signals on screen</h2>
-      <ul class="signals">
-        <li data-signal="gridLines"><span class="mark" aria-hidden="true"></span><span>Grid lines &amp; note names</span><span class="need"></span></li>
-        <li data-signal="ripples"><span class="mark" aria-hidden="true"></span><span>Ripples</span><span class="need"></span></li>
-        <li data-signal="playhead"><span class="mark" aria-hidden="true"></span><span>Playhead ▲</span><span class="need"></span></li>
-        <li data-signal="notes"><span class="mark" aria-hidden="true"></span><span>Note markers, folded →n ↑n</span><span class="need"></span></li>
+      <!-- 4 VISUAL SIGNAL LED PILLS (Context -> Feedback coupling) -->
+      <ul class="signal-leds" aria-label="Active visual signals">
+        <li data-signal="gridLines" title="Grid lines & note labels (needs ≥55% light)">
+          <span class="led-dot" aria-hidden="true"></span>
+          <span class="mark" aria-hidden="true">✓</span>
+          <span class="sig-name">GRID</span>
+          <span class="need">≥55%</span>
+        </li>
+        <li data-signal="ripples" title="Sound ripples (needs ≥40% light)">
+          <span class="led-dot" aria-hidden="true"></span>
+          <span class="mark" aria-hidden="true">✓</span>
+          <span class="sig-name">WAVE</span>
+          <span class="need">≥40%</span>
+        </li>
+        <li data-signal="playhead" title="Playhead column ▲ (needs ≥25% light)">
+          <span class="led-dot" aria-hidden="true"></span>
+          <span class="mark" aria-hidden="true">✓</span>
+          <span class="sig-name">HEAD</span>
+          <span class="need">≥25%</span>
+        </li>
+        <li data-signal="notes" title="Note pads & folded arrows (needs ≥10% light)">
+          <span class="led-dot" aria-hidden="true"></span>
+          <span class="mark" aria-hidden="true">✓</span>
+          <span class="sig-name">PADS</span>
+          <span class="need">≥10%</span>
+        </li>
       </ul>
-      <p class="always">Always on: sound, this panel, and the +/− flash when you edit.</p>
 
-      <figure id="cam-figure" hidden>
+      <!-- MINI CAMERA MONITOR (only shown when camera is active) -->
+      <figure id="cam-figure" class="cam-box" hidden>
         <canvas id="cam-preview" width="64" height="48" aria-hidden="true"></canvas>
-        <figcaption>What the camera measures: only the average brightness of this grey image. The video stays on your device.</figcaption>
+        <figcaption id="s-cam-luma">CAM</figcaption>
       </figure>
       <video id="cam-video" class="offscreen" playsinline muted aria-hidden="true"></video>
+    </section>
 
-      <footer class="sources">
-        <h2>Sources</h2>
-        <p>Theory: Dey (2001) · Hutchins, Hollan &amp; Norman (1985) · Dourish (2004).</p>
-        <p>Remix of the IMA lab experiments <em>Letter Rain</em> (Context) and <em>Mini Sequencer</em> (Feedback) by Mert Seven.</p>
-        <p><a href="https://github.com/altindagsimal/premise-remix#readme">README, rationale &amp; credits</a></p>
-      </footer>
-    </aside>
-  </main>
+    <!-- MAIN SEQUENCER STAGE -->
+    <main class="stage-area">
+      <div class="stage-bevel">
+        <canvas id="stage" tabindex="0"
+          aria-label="Note grid. Arrow keys move the cursor, Space adds or removes a note."
+          aria-describedby="keys-hint"></canvas>
+      </div>
+    </main>
+
+    <!-- WINAMP / WIN95 TRANSPORT & CONTEXT CONTROLS -->
+    <section class="deck-controls" aria-label="Controls">
+      <div class="btn-cluster">
+        <button id="play-btn" class="btn95 primary" aria-pressed="false">▶ PLAY <kbd>P</kbd></button>
+        <button id="clear-btn" class="btn95">■ CLEAR</button>
+        <button id="demo-btn" class="btn95">★ DEMO</button>
+      </div>
+
+      <div class="fader-box">
+        <label for="light-slider">☀ LIGHT <span id="light-out">75%</span> <kbd>D</kbd><kbd>B</kbd></label>
+        <input id="light-slider" type="range" min="0" max="100" step="1" value="75">
+        <button id="cam-btn" class="btn95 cam" aria-pressed="false">◉ CAM <kbd>C</kbd></button>
+      </div>
+
+      <div class="frame-buttons" role="group" aria-label="Frame size (keyboard alternative to resizing window)">
+        <span class="cluster-label">FRAME:</span>
+        <button class="btn95 mini" data-frame="-1,0" aria-label="Narrower frame (N)">⇥⇤ <kbd>N</kbd></button>
+        <button class="btn95 mini" data-frame="1,0" aria-label="Wider frame (W)">⇤⇥ <kbd>W</kbd></button>
+        <button class="btn95 mini" data-frame="0,-1" aria-label="Shorter frame (S)">⤓⤒ <kbd>S</kbd></button>
+        <button class="btn95 mini" data-frame="0,1" aria-label="Taller frame (T)">⤒⤓ <kbd>T</kbd></button>
+        <button class="btn95 mini" data-frame="reset" aria-label="Full frame (R)">FULL <kbd>R</kbd></button>
+      </div>
+    </section>
+
+    <!-- WIN95 BOTTOM STATUS BAR (compact readout + credits) -->
+    <footer class="statusbar">
+      <span class="status-cell" id="s-window">WIN: –</span>
+      <span class="status-cell" id="s-frame">FRAME: 100%×100%</span>
+      <span class="status-cell" id="s-range">PITCH: G3–E5</span>
+      <span class="status-cell" id="s-light">LIGHT: 75%</span>
+      <span class="status-cell" id="keys-hint">KEYS: ARROWS + SPACE · P · D/B · N/W/S/T/R · C</span>
+      <span class="status-cell credits">
+        <a href="https://github.com/altindagsimal/premise-remix#readme">Dey (2001) · Dourish (2004) · Hutchins et al. (1985) · README ↗</a>
+      </span>
+    </footer>
+  </div>
 
   <p id="live" class="sr-only" aria-live="polite"></p>
 

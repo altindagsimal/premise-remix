@@ -1,72 +1,303 @@
-/* SPATIAL RESONATOR · STYLE
-   The canvas draws the "room"; this file styles the panel and controls. */
+/* =========================================================================
+   SPATIAL RESONATOR · WIN95 / WINAMP / Y2K EDITION
+   Inspired by 90s Win95 desktop chrome, Winamp LED decks & Yahooligans lime/yellow
+   ========================================================================= */
 
 :root {
-  --bg: #0d0e12;
-  --panel: #15171d;
-  --ink: #f2efe6;
-  --muted: #a7a49a;
-  --line: #2b2e37;
-  --accent: #f2a541;
-  --focus: #7cc4ff;
-  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --desktop: #008080;
+  --win-bg: #cfd0d4;
+  --win-light: #ffffff;
+  --win-mid: #868a92;
+  --win-dark: #181a20;
+  --title-a: #00089c;
+  --title-b: #0b76d8;
+  --title-c: #00d4ff;
+  --lime: #b8ff01;
+  --yellow: #ffe600;
+  --pink: #ff2a85;
+  --cyan: #00f0ff;
+  --lcd-bg: #070b12;
+  --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --sans: "Trebuchet MS", Verdana, Tahoma, system-ui, sans-serif;
 }
 
 * { box-sizing: border-box; }
 
-html, body { margin: 0; }
+html, body { margin: 0; padding: 0; }
 
 body {
   height: 100vh;
   height: 100dvh;
+  padding: 10px;
+  background-color: var(--desktop);
+  background-image:
+    radial-gradient(rgba(255, 255, 255, 0.14) 1px, transparent 1px),
+    linear-gradient(160deg, rgba(0, 225, 255, 0.18), rgba(0, 0, 0, 0.35));
+  background-size: 16px 16px, 100% 100%;
+  color: #111;
+  font: 14px/1.35 var(--sans);
   display: flex;
   flex-direction: column;
-  background: var(--bg);
-  color: var(--ink);
-  font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  transition: background-color 0.2s ease;
 }
 
-/* ---------- header ---------- */
-.top {
+/* ---------- WIN95 MAIN WINDOW ---------- */
+.win95-window {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--win-bg);
+  border-top: 3px solid var(--win-light);
+  border-left: 3px solid var(--win-light);
+  border-right: 3px solid var(--win-dark);
+  border-bottom: 3px solid var(--win-dark);
+  box-shadow:
+    inset 1px 1px 0 #e8e9ec,
+    inset -1px -1px 0 var(--win-mid),
+    6px 6px 0 rgba(0, 0, 0, 0.45);
+  padding: 4px;
+  gap: 5px;
+}
+
+/* ---------- TITLE BAR ---------- */
+.titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 4px 6px;
+  background: linear-gradient(90deg, var(--title-a) 0%, var(--title-b) 65%, var(--title-c) 100%);
+  color: #fff;
+  user-select: none;
+}
+.titlebar-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+.win-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  background: var(--yellow);
+  color: #00089c;
+  font-weight: 900;
+  font-size: 15px;
+  border: 2px solid #000;
+  box-shadow: 2px 2px 0 #000;
+}
+h1 {
+  margin: 0;
+  font: 900 15px/1 var(--mono);
+  letter-spacing: 0.06em;
+  text-shadow: 2px 2px 0 #000;
+}
+.premise-tag {
+  background: var(--lime);
+  color: #050a0e;
+  font: 800 11px/1 var(--mono);
+  padding: 3px 7px;
+  border: 1.5px solid #000;
+  box-shadow: 2px 2px 0 #000;
+  letter-spacing: 0.04em;
+}
+.titlebar-btns { display: flex; gap: 3px; }
+.win-btn {
+  width: 22px;
+  height: 20px;
+  padding: 0;
+  font: 900 12px/1 var(--mono);
+  background: var(--win-bg);
+  color: #000;
+  border-top: 2px solid var(--win-light);
+  border-left: 2px solid var(--win-light);
+  border-right: 2px solid var(--win-dark);
+  border-bottom: 2px solid var(--win-dark);
+  cursor: pointer;
+}
+.win-btn.close { background: var(--yellow); }
+.win-btn:active {
+  border-top: 2px solid var(--win-dark);
+  border-left: 2px solid var(--win-dark);
+  border-right: 2px solid var(--win-light);
+  border-bottom: 2px solid var(--win-light);
+}
+
+/* ---------- SINGLE-LINE INSTRUCTION BANNER ---------- */
+.subbar {
+  background: #ffe600;
+  color: #0a0a12;
+  border: 2px solid #000;
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.25);
+  padding: 4px 10px;
+}
+.instruction {
+  margin: 0;
+  font: 700 13px/1.3 var(--sans);
+  letter-spacing: 0.01em;
+}
+.instruction b {
+  background: #00089c;
+  color: var(--lime);
+  padding: 0 5px;
+  font-family: var(--mono);
+}
+
+/* ---------- WINAMP LED DECK ---------- */
+.lcd-deck {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: stretch;
+  gap: 6px;
+  background: var(--lcd-bg);
+  color: var(--lime);
+  padding: 6px 8px;
+  border-top: 3px solid var(--win-dark);
+  border-left: 3px solid var(--win-dark);
+  border-right: 3px solid var(--win-light);
+  border-bottom: 3px solid var(--win-light);
+  box-shadow: inset 0 0 18px rgba(0, 240, 255, 0.14);
+  font-family: var(--mono);
+}
+.lcd-main {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 4px;
+  min-width: 0;
+}
+.lcd-top-row {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 0.25rem 1.5rem;
-  padding: 0.7rem 1.1rem;
-  border-bottom: 1px solid var(--line);
+  align-items: center;
+  gap: 6px;
 }
-h1 { margin: 0; font-size: 1.35rem; letter-spacing: 0.02em; }
-.premises {
+.lcd-play {
+  background: var(--lime);
+  color: #000;
+  font-weight: 900;
+  font-size: 12px;
+  padding: 2px 7px;
+  letter-spacing: 0.04em;
+}
+.lcd-bpm {
+  color: var(--yellow);
+  font-weight: 800;
+  font-size: 13px;
+  padding: 1px 6px;
+  border: 1px solid rgba(255, 230, 0, 0.45);
+  background: rgba(255, 230, 0, 0.1);
+}
+.lcd-chip {
+  color: var(--cyan);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border: 1px solid rgba(0, 240, 255, 0.35);
+  background: rgba(0, 240, 255, 0.08);
+}
+.lcd-ticker {
   margin: 0;
-  font: 11px/1.4 var(--mono);
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  font-size: 12px;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.instruction { margin: 0; font-size: 14px; }
+.lcd-ticker::before {
+  content: "► ";
+  color: var(--pink);
+}
 
-/* ---------- layout ---------- */
-.layout {
-  flex: 1 1 auto;
-  min-height: 0;
+/* ---------- 4 SIGNAL LED PILLS ---------- */
+.signal-leds {
+  list-style: none;
+  margin: 0;
+  padding: 0;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 330px;
+  grid-template-columns: repeat(4, auto);
+  gap: 5px;
+  align-items: center;
 }
-.stage-col {
+.signal-leds li {
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  min-width: 0;
-  min-height: 0;
-  padding: 0.75rem;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 7px;
+  border: 1.5px solid var(--lime);
+  background: rgba(184, 255, 1, 0.14);
+  color: var(--lime);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
 }
-.stage-wrap {
+.led-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--lime);
+  box-shadow: 0 0 6px var(--lime);
+}
+.signal-leds .need {
+  font-size: 10px;
+  color: var(--yellow);
+  opacity: 0.9;
+}
+.signal-leds li.off {
+  border-color: #3a3f4d;
+  background: rgba(255, 255, 255, 0.03);
+  color: #6c7282;
+}
+.signal-leds li.off .led-dot {
+  background: #ff2a85;
+  box-shadow: none;
+  opacity: 0.45;
+}
+.signal-leds li.off .sig-name { text-decoration: line-through; }
+.signal-leds li.off .need { color: #6c7282; }
+
+/* ---------- CAMERA MINI MONITOR ---------- */
+.cam-box {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 5px;
+  border: 1.5px solid var(--cyan);
+  background: #000;
+}
+.cam-box[hidden] { display: none; }
+#cam-preview {
+  width: 52px;
+  height: 38px;
+  image-rendering: pixelated;
+  border: 1px solid #333;
+}
+.cam-box figcaption {
+  font-size: 10px;
+  color: var(--cyan);
+  font-weight: 800;
+}
+
+/* ---------- MAIN SEQUENCER CANVAS ---------- */
+.stage-area {
+  flex: 1 1 auto;
+  min-height: 220px;
+  display: flex;
+}
+.stage-bevel {
   position: relative;
   flex: 1 1 auto;
-  min-height: 240px;
-  border: 1px solid var(--line);
-  border-radius: 10px;
+  border-top: 3px solid var(--win-dark);
+  border-left: 3px solid var(--win-dark);
+  border-right: 3px solid var(--win-light);
+  border-bottom: 3px solid var(--win-light);
+  background: #060a16;
   overflow: hidden;
 }
 #stage {
@@ -78,100 +309,127 @@ h1 { margin: 0; font-size: 1.35rem; letter-spacing: 0.02em; }
   cursor: pointer;
   touch-action: manipulation;
 }
-#stage:focus-visible { outline: 3px solid var(--focus); outline-offset: -3px; }
+#stage:focus-visible { outline: 3px dashed var(--yellow); outline-offset: -4px; }
 
-.last-change {
-  margin: 0;
-  min-height: 1.45em;
-  font: 13px/1.45 var(--mono);
-}
-.last-change::before { content: "› "; color: var(--accent); }
-
-/* ---------- controls ---------- */
-.controls {
+/* ---------- WIN95 / WINAMP CONTROL BAR ---------- */
+.deck-controls {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.5rem 0.6rem;
+  justify-content: space-between;
+  gap: 6px 12px;
+  padding: 5px 6px;
+  background: #dcdde1;
+  border-top: 2px solid var(--win-light);
+  border-left: 2px solid var(--win-light);
+  border-right: 2px solid var(--win-dark);
+  border-bottom: 2px solid var(--win-dark);
 }
-.btn {
-  font: inherit;
-  font-size: 14px;
-  color: var(--ink);
-  background: #1e2129;
-  border: 1px solid #3b3f4b;
-  border-radius: 8px;
-  padding: 0.45rem 0.75rem;
+.btn-cluster, .frame-buttons, .fader-box {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+}
+.cluster-label {
+  font: 900 11px/1 var(--mono);
+  color: #222;
+  margin-right: 2px;
+}
+.btn95 {
+  font: 800 12px/1.1 var(--mono);
+  color: #0b0c10;
+  background: var(--win-bg);
+  padding: 6px 10px;
+  border-top: 2.5px solid var(--win-light);
+  border-left: 2.5px solid var(--win-light);
+  border-right: 2.5px solid var(--win-dark);
+  border-bottom: 2.5px solid var(--win-dark);
+  box-shadow: inset -1px -1px 0 var(--win-mid), 2px 2px 0 rgba(0, 0, 0, 0.25);
   cursor: pointer;
 }
-.btn:hover { border-color: #646a7a; }
-.btn:disabled { opacity: 0.5; cursor: wait; }
-.btn.small { padding: 0.35rem 0.55rem; font-size: 13px; }
-.btn.primary { border-color: var(--accent); }
-.btn[aria-pressed="true"] { background: var(--ink); color: #111; }
-.btn:focus-visible, input:focus-visible, a:focus-visible {
-  outline: 3px solid var(--focus);
+.btn95:hover { background: #e5e6ea; }
+.btn95:active, .btn95[aria-pressed="true"] {
+  border-top: 2.5px solid var(--win-dark);
+  border-left: 2.5px solid var(--win-dark);
+  border-right: 2.5px solid var(--win-light);
+  border-bottom: 2.5px solid var(--win-light);
+  box-shadow: inset 1px 1px 0 var(--win-mid);
+  transform: translate(1px, 1px);
+}
+.btn95.primary {
+  background: var(--lime);
+  color: #000;
+}
+.btn95.primary[aria-pressed="true"] {
+  background: var(--pink);
+  color: #fff;
+}
+.btn95.cam[aria-pressed="true"] {
+  background: var(--cyan);
+  color: #000;
+}
+.btn95.mini { padding: 5px 7px; font-size: 11px; }
+.btn95:focus-visible, input:focus-visible, a:focus-visible {
+  outline: 2px dashed #00089c;
   outline-offset: 2px;
 }
-.frame-buttons { display: flex; flex-wrap: wrap; gap: 0.3rem; }
 kbd {
-  font: 10px/1.4 var(--mono);
-  border: 1px solid currentColor;
-  border-radius: 4px;
-  padding: 0 0.3em;
-  margin-left: 0.25em;
-  opacity: 0.7;
+  font: 700 10px/1 var(--mono);
+  background: rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(0, 0, 0, 0.45);
+  padding: 1px 3px;
+  margin-left: 2px;
 }
-.light-control { display: flex; flex-direction: column; font-size: 13px; }
-.light-control input { width: 170px; accent-color: var(--accent); }
-.keys { margin: 0; font: 11px/1.5 var(--mono); color: var(--muted); }
 
-/* ---------- panel ---------- */
-.panel {
-  min-height: 0;
-  overflow: auto;
-  padding: 1rem 1.1rem;
-  background: var(--panel);
-  border-left: 1px solid var(--line);
+.fader-box {
+  background: #bcbec4;
+  padding: 3px 8px;
+  border-top: 2px solid var(--win-dark);
+  border-left: 2px solid var(--win-dark);
+  border-right: 2px solid var(--win-light);
+  border-bottom: 2px solid var(--win-light);
 }
-.panel h2 {
-  margin: 0 0 0.5rem;
-  font: 11px/1.4 var(--mono);
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+.fader-box label {
+  font: 800 11px/1 var(--mono);
+  color: #000;
 }
-.readout {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 0.3rem 0.8rem;
-  margin: 0 0 1.2rem;
-  font-size: 13px;
+#light-out {
+  background: #000;
+  color: var(--yellow);
+  padding: 1px 4px;
 }
-.readout dt { color: var(--muted); }
-.readout dd { margin: 0; font-family: var(--mono); font-size: 12px; }
+#light-slider {
+  width: 130px;
+  accent-color: #00089c;
+  cursor: pointer;
+}
 
-.signals { list-style: none; margin: 0 0 0.4rem; padding: 0; font-size: 13px; }
-.signals li { display: flex; align-items: baseline; gap: 0.5rem; padding: 0.2rem 0; }
-.signals .mark { width: 1em; font-weight: 700; }
-.signals .need { margin-left: auto; font: 11px var(--mono); color: var(--muted); white-space: nowrap; }
-.signals li.off { color: var(--muted); }
-.signals li.off span:nth-child(2) { text-decoration: line-through; }
-.always { margin: 0 0 1rem; font-size: 12px; color: var(--muted); }
-
-#cam-figure { margin: 0 0 1rem; display: flex; gap: 0.7rem; align-items: flex-start; }
-#cam-figure[hidden] { display: none; }
-#cam-preview { width: 96px; height: 72px; image-rendering: pixelated; border: 1px solid var(--line); flex: none; }
-#cam-figure figcaption { font-size: 12px; color: var(--muted); }
-
-.sources {
-  border-top: 1px solid var(--line);
-  padding-top: 0.75rem;
-  font-size: 12px;
-  color: var(--muted);
+/* ---------- WIN95 SUNKEN STATUS BAR ---------- */
+.statusbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  font: 700 11px/1.2 var(--mono);
+  color: #111;
 }
-.sources p { margin: 0 0 0.4rem; }
-.sources a { color: var(--ink); }
+.status-cell {
+  padding: 3px 7px;
+  background: #c5c6ca;
+  border-top: 1.5px solid var(--win-mid);
+  border-left: 1.5px solid var(--win-mid);
+  border-right: 1.5px solid var(--win-light);
+  border-bottom: 1.5px solid var(--win-light);
+}
+.status-cell.credits {
+  margin-left: auto;
+  background: #e2e3e7;
+}
+.status-cell a {
+  color: #00089c;
+  text-decoration: underline;
+  font-weight: 800;
+}
 
 .sr-only, .offscreen {
   position: absolute;
@@ -182,11 +440,11 @@ kbd {
   white-space: nowrap;
 }
 
-/* ---------- phones / narrow or short windows ---------- */
-@media (max-width: 860px), (max-height: 620px) {
-  body { height: auto; }
-  .layout { grid-template-columns: minmax(0, 1fr); }
-  .stage-wrap { flex: none; height: 62vh; min-height: 260px; }
-  .panel { border-left: 0; border-top: 1px solid var(--line); overflow: visible; }
-  .keys { display: none; }
+/* ---------- RESPONSIVE / MOBILE ---------- */
+@media (max-width: 900px), (max-height: 600px) {
+  body { height: auto; min-height: 100dvh; padding: 4px; }
+  .lcd-deck { grid-template-columns: 1fr; }
+  .signal-leds { grid-template-columns: repeat(2, 1fr); }
+  .stage-area { height: 56vh; min-height: 250px; flex: none; }
+  #keys-hint { display: none; }
 }

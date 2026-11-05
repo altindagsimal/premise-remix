@@ -10,23 +10,23 @@ const CONFIG = {
 
   // ---------- 1. CONTEXT · WINDOW → GRID --------------------------------
   grid: {
-    pxPerStep: 100,        // every 100 px of width adds one step (time)
-    pxPerNote: 60,         // every 60 px of height adds one note row (pitch)
+    pxPerStep: 90,         // every 90 px of width adds one step (time)
+    pxPerNote: 52,         // every 52 px of height adds one note row (pitch)
     minSteps: 4,  maxSteps: 16,
     minNotes: 3,  maxNotes: 10,
     resizeAnnounceMs: 350, // wait this long after resizing before announcing
   },
   // Keyboard / button alternative to dragging the window edges.
   frame: {
-    step: 0.1,             // [ ] and - = change the frame by 10 %
+    step: 0.1,             // N/W/S/T change the frame by 10 %
     min: 0.3,              // the frame can shrink to 30 % of the stage
     max: 1,
   },
 
   // ---------- 2. CONTEXT · LIGHT -----------------------------------------
   light: {
-    start: 0.7,            // 0 = dark room, 1 = bright room
-    keyStep: 0.1,          // how much , and . change the light
+    start: 0.75,           // 0 = dark room, 1 = bright room
+    keyStep: 0.1,          // how much D and B change the light
   },
   camera: {
     sampleMs: 400,         // how often the camera brightness is measured
@@ -51,7 +51,7 @@ const CONFIG = {
     notes:     0.10,       // stored note markers + folded-note arrows
   },
   flashMs: 380,            // how long a clicked cell flashes (acknowledgement)
-  badgeMs: 1800,           // how long the "8 × 5 → 11 × 6" badge stays visible
+  badgeMs: 1600,           // how long the "10 × 8 → 6 × 8" badge stays visible
 
   // ---------- 4. SOUND ---------------------------------------------------
   audio: {
@@ -62,7 +62,7 @@ const CONFIG = {
     darkDecay: 1.4,               // seconds a note rings in the dark
     brightWave: 'triangle',
     darkWave: 'sine',
-    referenceArea: 1600 * 900,    // grid area that counts as a "large room"
+    referenceArea: 1400 * 700,    // grid area that counts as a "large room"
     echoMinSec: 0.08,             // small window → short echo
     echoMaxSec: 0.45,             // large window → long echo
     echoFeedbackBright: 0.15,     // echo repeats in bright light
@@ -74,10 +74,23 @@ const CONFIG = {
     cooldownMs: 0,         // minimum time between two note edits (0 = no limit)
   },
 
-  // ---------- 6. VISUALS -------------------------------------------------
-  ripple: { maxRadius: 120, growPx: 2.2, fade: 0.03 },
+  // ---------- 6. VISUALS (Win95 / Winamp / Y2K palette) ------------------
+  ripple: { maxRadius: 110, growPx: 2.5, fade: 0.032 },
   colors: {
-    darkRoom:  [6, 7, 10],        // stage background at 0 % light (RGB)
-    brightRoom: [214, 208, 194],  // stage background at 100 % light (RGB)
+    darkRoom:   [6, 10, 22],      // canvas background at 0 % light (deep CRT night)
+    brightRoom: [25, 42, 92],     // canvas background at 100 % light (electric cobalt)
+    // Vibrant Y2K / Winamp spectrum color per pitch row (low → high)
+    rows: [
+      '#ff2a85', // hot pink
+      '#ff5c2b', // coral orange
+      '#ffb800', // cyber gold
+      '#ffe600', // lemon star
+      '#b8ff01', // Yahooligans lime
+      '#00f59b', // mint neon
+      '#00e1ff', // cyan
+      '#3b82ff', // electric blue
+      '#9b5cff', // violet
+      '#ff66e5', // bubblegum
+    ],
   },
 };
