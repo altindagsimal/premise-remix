@@ -19,6 +19,6 @@ In an earlier prototype, shrinking the window hid outer cells, rows used non-seq
 ### Links & References
 - **Live Experience (GitHub Pages):** https://altindagsimal.github.io/premise-remix/
 - **Source Repository:** https://github.com/altindagsimal/premise-remix
-- Dey, A. K. (2001). Understanding and using context. *Personal and Ubiquitous Computing*, 5(1), 4–7. https://doi.org/10.1007/s007790170019
+- Dey, A. K. (2001). Understanding and using context. *Personal and Ubiquitous Computing*, 5(1), 4–7. https://sites.cc.gatech.edu/fce/ctk/pubs/PeTe5-1.pdf
 - Dourish, P. (2004). What we talk about when we talk about context. *Personal and Ubiquitous Computing*, 8(1), 19–30. https://www.dourish.com/publications/2004/PUC2004-context.pdf
 - Hutchins, E. L., Hollan, J. D., & Norman, D. A. (1985). Direct manipulation interfaces. *Human–Computer Interaction*, 1(4), 311–338. https://www.lri.fr/~mbl/ENS/FONDIHM/2013/papers/Hutchins-HCI-85.pdf
