@@ -18,57 +18,61 @@
         <span class="premise-tag">CONTEXT × FEEDBACK</span>
       </div>
       <div class="titlebar-btns" role="group" aria-label="Quick frame size">
-        <button class="win-btn" data-frame="-1,-1" title="Shrink frame (N/S)" aria-label="Shrink frame">_</button>
-        <button class="win-btn" data-frame="reset" title="Full window frame (R)" aria-label="Full window frame">□</button>
+        <button class="win-btn" data-frame="-1,-1" title="Shrink window frame (N/S)" aria-label="Shrink window frame">_</button>
+        <button class="win-btn" data-frame="reset" title="Reset to full window (R)" aria-label="Full window frame">□</button>
         <button class="win-btn close" id="demo-top-btn" title="Reload demo melody" aria-label="Reload demo melody">★</button>
       </div>
     </header>
 
     <!-- SINGLE-LINE INSTRUCTION BANNER -->
     <div class="subbar">
-      <p class="instruction">★ Click pads (<b>A1–H8</b>) and press <b>PLAY</b> — resize the window (changes pitch &amp; echo) or dim the light (hides visual signals).</p>
+      <p class="instruction">★ Click pads (<b>A1–H8</b>) and press <b>PLAY</b> — resize the window (changes <b>Pitch &amp; Room Echo</b>) or dim the room light (changes <b>Tempo</b> and hides <b>Visual Layers</b>).</p>
     </div>
 
-    <!-- WINAMP-STYLE LED FEEDBACK DECK -->
-    <section class="lcd-deck" aria-label="System state and active signals">
+    <!-- WINAMP-STYLE SELF-EXPLANATORY FEEDBACK DECK -->
+    <section class="lcd-deck" aria-label="How context changes sound and visual feedback">
       <div class="lcd-main">
+        <div class="deck-heading">CONTEXT → SOUND RULES (LIVE STATE):</div>
         <div class="lcd-top-row">
-          <span class="lcd-play" id="s-play">■ READY</span>
-          <span class="lcd-bpm" id="s-tempo">116 BPM · TRI</span>
-          <span class="lcd-chip" id="s-grid">PITCH ×1.00</span>
-          <span class="lcd-chip" id="s-echo">ECHO 30% · 0.24s</span>
-          <span class="lcd-chip" id="s-pattern">8 ACTIVE PADS (A1–H8)</span>
+          <span class="lcd-play" id="s-play">■ STOPPED (Press PLAY [P])</span>
+          <span class="lcd-bpm" id="s-tempo">☀ Room Light 75% → Tempo 116 BPM</span>
+          <span class="lcd-chip" id="s-grid">↔ Window Width → Pitch ×1.00 (Normal)</span>
+          <span class="lcd-chip" id="s-echo">□ Window Area → Room Echo 30% (0.24s)</span>
+          <span class="lcd-chip" id="s-pattern">♪ Stored Notes: 8 / 64 Pads</span>
         </div>
-        <p class="lcd-ticker" id="last-change" aria-hidden="true">READY — CLICK ANY PAD (A1–H8) OR PRESS [P] TO PLAY</p>
+        <p class="lcd-ticker" id="last-change" aria-hidden="true">READY — CLICK ANY PAD (A1–H8) TO HEAR ITS NOTE, OR PRESS [P] TO START PLAYBACK</p>
       </div>
 
-      <!-- 4 VISUAL SIGNAL LED PILLS (Context -> Feedback coupling) -->
-      <ul class="signal-leds" aria-label="Active visual signals">
-        <li data-signal="gridLines" title="Grid lines & A–H / 1–8 labels (needs ≥55% light)">
-          <span class="led-dot" aria-hidden="true"></span>
-          <span class="mark" aria-hidden="true">✓</span>
-          <span class="sig-name">GRID</span>
-          <span class="need">≥55%</span>
-        </li>
-        <li data-signal="ripples" title="Sound ripples (needs ≥40% light)">
-          <span class="led-dot" aria-hidden="true"></span>
-          <span class="mark" aria-hidden="true">✓</span>
-          <span class="sig-name">WAVE</span>
-          <span class="need">≥40%</span>
-        </li>
-        <li data-signal="playhead" title="Playhead column ▲ (needs ≥25% light)">
-          <span class="led-dot" aria-hidden="true"></span>
-          <span class="mark" aria-hidden="true">✓</span>
-          <span class="sig-name">HEAD</span>
-          <span class="need">≥25%</span>
-        </li>
-        <li data-signal="notes" title="Note pads A1–H8 (needs ≥10% light)">
-          <span class="led-dot" aria-hidden="true"></span>
-          <span class="mark" aria-hidden="true">✓</span>
-          <span class="sig-name">PADS</span>
-          <span class="need">≥10%</span>
-        </li>
-      </ul>
+      <!-- 4 SELF-EXPLANATORY VISUAL FEEDBACK LAYER INDICATORS -->
+      <div class="signal-block">
+        <div class="deck-heading">CONTEXT → VISUAL FEEDBACK LAYERS (HIDE WHEN ROOM LIGHT DROPS):</div>
+        <ul class="signal-leds" aria-label="Visual feedback layers controlled by room light">
+          <li data-signal="gridLines" title="Grid lines and A–H / 1–8 labels turn off when room light is below 55%">
+            <span class="led-dot" aria-hidden="true"></span>
+            <span class="mark" aria-hidden="true">✓</span>
+            <span class="sig-name">Grid Lines &amp; Labels</span>
+            <span class="need">VISIBLE (Light ≥55%)</span>
+          </li>
+          <li data-signal="ripples" title="Expanding sound wave rings turn off when room light is below 40%">
+            <span class="led-dot" aria-hidden="true"></span>
+            <span class="mark" aria-hidden="true">✓</span>
+            <span class="sig-name">Wave Ripples</span>
+            <span class="need">VISIBLE (Light ≥40%)</span>
+          </li>
+          <li data-signal="playhead" title="Moving step column and ▲ playhead turn off when room light is below 25%">
+            <span class="led-dot" aria-hidden="true"></span>
+            <span class="mark" aria-hidden="true">✓</span>
+            <span class="sig-name">Playhead Bar (▲)</span>
+            <span class="need">VISIBLE (Light ≥25%)</span>
+          </li>
+          <li data-signal="notes" title="Colored note pads A1–H8 turn off when room light is below 10%">
+            <span class="led-dot" aria-hidden="true"></span>
+            <span class="mark" aria-hidden="true">✓</span>
+            <span class="sig-name">Note Pads (A1–H8)</span>
+            <span class="need">VISIBLE (Light ≥10%)</span>
+          </li>
+        </ul>
+      </div>
 
       <!-- MINI CAMERA MONITOR (only shown when camera is active) -->
       <figure id="cam-figure" class="cam-box" hidden>
@@ -83,7 +87,7 @@
       <div class="stage-bevel">
         <canvas id="stage" tabindex="0"
           aria-label="8 by 8 note grid, rows A to H, columns 1 to 8. Arrow keys move the cursor, Space adds or removes a note."
-          aria-describedby="keys-hint"></canvas>
+          aria-describedby="theory-rules"></canvas>
       </div>
     </main>
 
@@ -96,35 +100,41 @@
       </div>
 
       <div class="fader-box">
-        <label for="light-slider">☀ LIGHT <span id="light-out">75%</span> <kbd>D</kbd><kbd>B</kbd></label>
-        <input id="light-slider" type="range" min="0" max="100" step="1" value="75">
-        <button id="cam-btn" class="btn95 cam" aria-pressed="false">◉ CAM <kbd>C</kbd></button>
+        <label for="light-slider">☀ ROOM LIGHT: <span id="light-out">75%</span></label>
+        <input id="light-slider" type="range" min="0" max="100" step="1" value="75" title="Drag to change room light (controls tempo & visual layer visibility)">
+        <button id="dark-btn" class="btn95 mini" type="button" title="Make room darker (Key: D)">Darker <kbd>D</kbd></button>
+        <button id="bright-btn" class="btn95 mini" type="button" title="Make room brighter (Key: B)">Brighter <kbd>B</kbd></button>
+        <button id="cam-btn" class="btn95 cam" aria-pressed="false" title="Measure real room light with webcam">◉ CAMERA SENSOR <kbd>C</kbd></button>
       </div>
 
-      <div class="frame-buttons" role="group" aria-label="Frame size (keyboard alternative to resizing window)">
-        <span class="cluster-label">ROOM SIZE:</span>
-        <button class="btn95 mini" data-frame="-1,0" aria-label="Narrower frame (N)">⇥⇤ <kbd>N</kbd></button>
-        <button class="btn95 mini" data-frame="1,0" aria-label="Wider frame (W)">⇤⇥ <kbd>W</kbd></button>
-        <button class="btn95 mini" data-frame="0,-1" aria-label="Shorter frame (S)">⤓⤒ <kbd>S</kbd></button>
-        <button class="btn95 mini" data-frame="0,1" aria-label="Taller frame (T)">⤒⤓ <kbd>T</kbd></button>
-        <button class="btn95 mini" data-frame="reset" aria-label="Full frame (R)">FULL <kbd>R</kbd></button>
+      <div class="frame-buttons" role="group" aria-label="Simulate window resize with buttons or keyboard">
+        <span class="cluster-label">↔ WINDOW / ROOM SIZE:</span>
+        <button class="btn95 mini" data-frame="-1,0" title="Simulate narrower window: higher pitch & drier echo (Key: N)">Narrower <kbd>N</kbd></button>
+        <button class="btn95 mini" data-frame="1,0" title="Simulate wider window: deeper pitch & bigger echo (Key: W)">Wider <kbd>W</kbd></button>
+        <button class="btn95 mini" data-frame="0,-1" title="Simulate shorter window (Key: S)">Shorter <kbd>S</kbd></button>
+        <button class="btn95 mini" data-frame="0,1" title="Simulate taller window (Key: T)">Taller <kbd>T</kbd></button>
+        <button class="btn95 mini" data-frame="reset" title="Restore full window size (Key: R)">Full Size <kbd>R</kbd></button>
       </div>
     </section>
 
-    <!-- WIN95 BOTTOM STATUS BAR -->
-    <footer class="statusbar">
-      <span class="status-cell" id="s-window">SPACE: –</span>
-      <span class="status-cell" id="s-frame">FRAME: 100%×100%</span>
-      <span class="status-cell" id="s-range">GRID: A–H × 1–8</span>
-      <span class="status-cell" id="s-light">LIGHT: 75%</span>
-      <span class="status-cell" id="keys-hint">KEYS: ARROWS + SPACE · P · D/B · N/W/S/T/R · C</span>
-      <span class="status-cell credits">
-        Sources:
-        <a href="https://sites.cc.gatech.edu/fce/ctk/pubs/PeTe5-1.pdf" target="_blank" rel="noopener noreferrer">Dey (2001) PDF ↗</a> ·
-        <a href="https://www.dourish.com/publications/2004/PUC2004-context.pdf" target="_blank" rel="noopener noreferrer">Dourish (2004) PDF ↗</a> ·
-        <a href="https://www.lri.fr/~mbl/ENS/FONDIHM/2013/papers/Hutchins-HCI-85.pdf" target="_blank" rel="noopener noreferrer">Hutchins et al. (1985) PDF ↗</a> ·
-        <a href="https://mertseven.com/ima/lab/bibliography.html" target="_blank" rel="noopener noreferrer">IMA Lab ↗</a>
-      </span>
+    <!-- SOURCES & DESIGN RULES FOOTER (Each reading explicitly tied to the rule it governs) -->
+    <footer class="theory-bar" id="theory-rules" aria-label="Sources and the design rules they govern">
+      <div class="theory-card">
+        <a href="https://sites.cc.gatech.edu/fce/ctk/pubs/PeTe5-1.pdf" target="_blank" rel="noopener noreferrer">1. Dey (2001) PDF ↗</a>
+        <span><b>Sensor-to-Sound Rule (<code>js/rules.js</code>):</b> Maps window pixels to <b>Pitch</b> (<code>×1.45–×0.72</code>) &amp; <b>Echo</b> (<code>3%–42%</code>), and light to <b>Tempo</b> (<code>68–132 BPM</code>).</span>
+      </div>
+      <div class="theory-card">
+        <a href="https://www.dourish.com/publications/2004/PUC2004-context.pdf" target="_blank" rel="noopener noreferrer">2. Dourish (2004) PDF ↗</a>
+        <span><b>Negotiated Context Rule (<code>js/context.js</code>):</b> Exposes the live <code>64×48</code> camera feed + <b>Light Slider (D/B)</b> &amp; <b>Room Size (N/W/S/T/R)</b> overrides.</span>
+      </div>
+      <div class="theory-card">
+        <a href="https://www.lri.fr/~mbl/ENS/FONDIHM/2013/papers/Hutchins-HCI-85.pdf" target="_blank" rel="noopener noreferrer">3. Hutchins et al. (1985) PDF ↗</a>
+        <span><b>State Legibility vs. Darkness Rule (<code>CONFIG.signals</code>):</b> Separates pad/playhead states (<code>★</code>, <code>▲/△</code>), then hides visual layers below <code>55%/40%/25%/10%</code> light.</span>
+      </div>
+      <div class="theory-card">
+        <a href="https://mertseven.com/ima/lab/bibliography.html" target="_blank" rel="noopener noreferrer">4. IMA Lab (NMED 3203) ↗</a>
+        <span><b>Premise Remix:</b> Combines Collection 06 <i>Letter Rain</i> (light threshold rule) × Collection 03 <i>Mini Sequencer</i> (step-clock feedback loop).</span>
+      </div>
     </footer>
   </div>
 

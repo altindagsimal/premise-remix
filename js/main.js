@@ -2,7 +2,7 @@
    SPATIAL RESONATOR · MAIN (Win95 / Winamp / Y2K Edition)
    -------------------------------------------------------------------------
    Wires inputs (pointer, keyboard, buttons, camera) to the system and
-   updates the compact Winamp LED deck + status bar.
+   updates the self-explanatory LED deck + theory/rules bar.
    ========================================================================= */
 (function () {
   const $ = (id) => document.getElementById(id);
@@ -14,10 +14,10 @@
   const camBtn = $('cam-btn');
 
   const SIGNAL_LABELS = {
-    gridLines: 'GRID',
-    ripples: 'WAVE',
-    playhead: 'HEAD',
-    notes: 'PADS',
+    gridLines: 'Grid Lines & Labels',
+    ripples: 'Wave Ripples',
+    playhead: 'Playhead Bar (▲)',
+    notes: 'Note Pads (A1–H8)',
   };
 
   function announce(msg) {
@@ -26,28 +26,30 @@
   }
 
   function playbackText() {
-    if (STATE.playing) return `▶ PLAY ${STATE.step + 1}/8`;
-    if (SEQ.countStored() === 0) return '■ EMPTY';
-    if (STATE.step < 0) return '■ READY';
-    return '❚❚ PAUSED';
+    if (STATE.playing) return `▶ PLAYING (Step ${STATE.step + 1}/8)`;
+    if (SEQ.countStored() === 0) return '■ EMPTY GRID (Click pads A1–H8)';
+    if (STATE.step < 0) return '■ STOPPED (Press PLAY [P])';
+    return `❚❚ PAUSED (Step ${STATE.step + 1}/8)`;
   }
 
   function pitchDesc() {
     const m = RULES.pitchMultiplier(STATE.gridW);
-    const tag = m > 1.15 ? 'HIGH/TİZ' : m < 0.9 ? 'DEEP/BAS' : 'MID';
-    return `PITCH ×${m.toFixed(2)} (${tag})`;
+    const tag = m > 1.15 ? 'High / Narrow' : m < 0.9 ? 'Deep / Wide' : 'Normal';
+    return `Pitch ×${m.toFixed(2)} (${tag})`;
   }
 
   function echoDesc() {
     const mixPct = Math.round(RULES.echoMix(STATE.gridW, STATE.gridH) * 100);
     const sec = RULES.echoSeconds(STATE.gridW, STATE.gridH).toFixed(2);
-    return `ECHO ${mixPct}% · ${sec}s`;
+    return `Room Echo ${mixPct}% (${sec}s)`;
   }
 
   function updatePanel() {
     const pct = Math.round(STATE.light * 100);
-    const wave = RULES.waveFromLight(STATE.light) === 'triangle' ? 'TRI' : 'SINE';
+    const tone = RULES.waveFromLight(STATE.light) === 'triangle' ? 'Bright tone' : 'Warm tone';
     const stored = SEQ.countStored();
+    const areaPct = Math.round(RULES.roomSizeRatio(STATE.gridW, STATE.gridH) * 100);
+    const lightSrc = STATE.cameraOn ? `Camera ${pct}%` : `Room Light ${pct}%`;
 
     // Desktop teal dims with room light
     const r = Math.round(lerp(4, 0, STATE.light));
@@ -55,33 +57,38 @@
     const b = Math.round(lerp(28, 128, STATE.light));
     document.body.style.setProperty('--desktop', `rgb(${r},${g},${b})`);
 
-    // Winamp LED chips
+    // Self-explanatory Cause → Effect LED chips
     $('s-play').textContent = playbackText();
-    $('s-tempo').textContent = `${RULES.bpmFromLight(STATE.light)} BPM · ${wave}`;
-    $('s-grid').textContent = pitchDesc();
-    $('s-echo').textContent = echoDesc();
-    $('s-pattern').textContent = `${stored} ACTIVE PADS (A1–H8)`;
+    $('s-tempo').textContent = `☀ ${lightSrc} → Tempo ${RULES.bpmFromLight(STATE.light)} BPM (${tone})`;
+    $('s-grid').textContent = `↔ Width ${STATE.gridW}px → ${pitchDesc()}`;
+    $('s-echo').textContent = `□ Room Size ${areaPct}% → ${echoDesc()}`;
+    $('s-pattern').textContent = `♪ Stored Notes: ${stored} / 64 Pads`;
 
-    // Bottom status bar cells
-    $('s-window').textContent = `SPACE: ${STATE.gridW}×${STATE.gridH}px`;
-    $('s-frame').textContent = `FRAME: ${Math.round(STATE.frameW * 100)}%×${Math.round(STATE.frameH * 100)}%`;
-    $('s-range').textContent = `GRID: A–H × 1–8`;
-    $('s-light').textContent = STATE.cameraOn ? `LIGHT: ${pct}% (CAM)` : `LIGHT: ${pct}%`;
     if ($('s-cam-luma')) {
-      $('s-cam-luma').textContent = STATE.luma == null ? 'CAM' : `${Math.round(STATE.luma * 100)}%`;
+      $('s-cam-luma').textContent = STATE.luma == null ? 'CAM' : `CAM ${Math.round(STATE.luma * 100)}%`;
     }
 
-    // 4 Signal LED pills
+    // 4 Self-Explanatory Visual Feedback Layer Pills
     document.querySelectorAll('[data-signal]').forEach((li) => {
-      const name = li.dataset.signal, t = CONFIG.signals[name];
+      const name = li.dataset.signal;
+      const t = CONFIG.signals[name];
+      const pctNeed = Math.round(t * 100);
       const on = RULES.signalVisible(name, STATE.light);
       li.classList.toggle('off', !on);
       li.querySelector('.mark').textContent = on ? '✓' : '✕';
-      li.querySelector('.need').textContent = t > 1 ? 'OFF' : t <= 0 ? 'ON' : `≥${Math.round(t * 100)}%`;
+      if (t > 1) {
+        li.querySelector('.need').textContent = 'DISABLED IN CONFIG';
+      } else if (t <= 0) {
+        li.querySelector('.need').textContent = 'ALWAYS VISIBLE';
+      } else {
+        li.querySelector('.need').textContent = on
+          ? `VISIBLE (Light ≥${pctNeed}%)`
+          : `HIDDEN (Needs ≥${pctNeed}% Light)`;
+      }
     });
 
     slider.value = pct;
-    slider.setAttribute('aria-valuetext', `${pct}% light`);
+    slider.setAttribute('aria-valuetext', `${pct}% room light`);
     $('light-out').textContent = `${pct}%`;
   }
 
@@ -98,15 +105,15 @@
     if (changed && before.gridW && ready) {
       const src = resizeSource;
       RENDER.showBadge([
-        `${pitchDesc()}`,
-        `${echoDesc()}  ·  SPACE ${STATE.gridW}×${STATE.gridH}px`,
+        `WINDOW ${STATE.gridW}×${STATE.gridH}px → ${pitchDesc()}`,
+        `${echoDesc()}  [Dey 2001 Sensor Rule]`,
       ]);
       clearTimeout(burstTimer);
       burstTimer = setTimeout(() => {
-        announce(`${src} RESIZED → ${pitchDesc()} · ${echoDesc()}`);
+        announce(`${src} RESIZED (${STATE.gridW}×${STATE.gridH}px) → ${pitchDesc()} · ${echoDesc()}`);
         // If paused, play a reference note so the user hears the new pitch & echo immediately!
         if (!STATE.playing && AUDIO.ctx) {
-          AUDIO.playNote(3);
+          AUDIO.playNote(3, 3);
           RENDER.addRipple(3, 3);
         }
       }, CONFIG.grid.resizeAnnounceMs);
@@ -121,10 +128,10 @@
       const off = changes.filter((c) => !c.visible).map((c) => SIGNAL_LABELS[c.name]);
       const on = changes.filter((c) => c.visible).map((c) => SIGNAL_LABELS[c.name]);
       const pct = Math.round(STATE.light * 100);
-      const detail = off.length ? `HIDDEN: ${off.join(', ')}` : `SHOWN: ${on.join(', ')}`;
-      announce(`LIGHT ${pct}% · ${detail} · AUDIO & LED STAY ON`);
+      const detail = off.length ? `HIDDEN IN DARK: ${off.join(', ')}` : `RESTORED: ${on.join(', ')}`;
+      announce(`ROOM LIGHT ${pct}% → TEMPO ${RULES.bpmFromLight(STATE.light)} BPM · ${detail}`);
       RENDER.showBadge([
-        STATE.light < prev ? `LIGHT ${pct}% ↓` : `LIGHT ${pct}% ↑`,
+        STATE.light < prev ? `ROOM LIGHT ${pct}% ↓ (${RULES.bpmFromLight(STATE.light)} BPM)` : `ROOM LIGHT ${pct}% ↑ (${RULES.bpmFromLight(STATE.light)} BPM)`,
         detail,
       ]);
     }
@@ -154,7 +161,7 @@
       RENDER.addRipple(row, step);
     }
     const hz = Math.round(RULES.frequencyForCell(row, step, STATE.gridW));
-    const hidden = res.on && !RULES.signalVisible('notes', STATE.light) ? ' (DARK MODE: LISTEN)' : '';
+    const hidden = res.on && !RULES.signalVisible('notes', STATE.light) ? ' (PADS HIDDEN <10% LIGHT — LISTEN TO SOUND)' : '';
     announce(`${res.on ? '+ ADDED' : '− REMOVED'} PAD ${label} (${hz} Hz)${hidden} · ${echoDesc()}`);
     updatePanel();
   }
@@ -164,8 +171,7 @@
     STATE.cursor.step = clamp(STATE.cursor.step, 0, STATE.steps - 1);
   }
 
-  // Since row 0 ('A') is at the top and row 7 ('H') is at the bottom:
-  // ArrowUp moves up (dRow = -1), ArrowDown moves down (dRow = +1).
+  // Row 0 ('A') is at the top and row 7 ('H') is at the bottom
   function moveCursor(dRow, dStep) {
     STATE.cursorVisible = true;
     clampCursor();
@@ -179,10 +185,10 @@
     AUDIO.init();
     if (STATE.playing) {
       SEQ.pause();
-      announce(`PAUSED · ${SEQ.countStored()} PADS KEPT`);
+      announce(`PAUSED · ${SEQ.countStored()} PADS KEPT ON GRID`);
     } else {
       SEQ.play();
-      announce(`PLAYING @ ${RULES.bpmFromLight(STATE.light)} BPM · ${echoDesc()}`);
+      announce(`PLAYING @ ${RULES.bpmFromLight(STATE.light)} BPM · ${pitchDesc()} · ${echoDesc()}`);
     }
     playBtn.setAttribute('aria-pressed', String(STATE.playing));
     playBtn.firstChild.textContent = STATE.playing ? '❚❚ PAUSE ' : '▶ PLAY ';
@@ -191,7 +197,7 @@
 
   function nudgeLight(dir) {
     if (STATE.cameraOn) {
-      announce('CAM ACTIVE — PRESS [C] TO USE SLIDER OR D/B KEYS');
+      announce('CAMERA ACTIVE — PRESS [C] TO USE SLIDER OR D/B KEYS');
       return;
     }
     CONTEXT.setLight(STATE.light + dir * CONFIG.light.keyStep, 'manual');
@@ -209,12 +215,12 @@
     ready = true;
     resizeSource = 'FRAME';
     CONTEXT.resetFrame();
-    announce(`FRAME RESET TO 100% · ${pitchDesc()} · ${echoDesc()}`);
+    announce(`WINDOW FRAME RESET TO 100% · ${pitchDesc()} · ${echoDesc()}`);
   }
 
   function updateCameraUI() {
     camBtn.setAttribute('aria-pressed', String(STATE.cameraOn));
-    camBtn.firstChild.textContent = STATE.cameraOn ? '■ STOP CAM ' : '◉ CAM ';
+    camBtn.firstChild.textContent = STATE.cameraOn ? '■ STOP CAMERA ' : '◉ CAMERA SENSOR ';
     slider.disabled = STATE.cameraOn;
     $('cam-figure').hidden = !STATE.cameraOn;
   }
@@ -222,18 +228,18 @@
   async function toggleCamera() {
     if (STATE.cameraOn) {
       CONTEXT.stopCamera(video);
-      announce('CAMERA OFF · SLIDER / D-B KEYS ACTIVE');
+      announce('CAMERA SENSOR OFF · SLIDER / D-B KEYS ACTIVE');
       updateCameraUI();
       updatePanel();
       return;
     }
     camBtn.disabled = true;
-    announce('REQUESTING CAMERA PERMISSION…');
+    announce('REQUESTING WEBCAM PERMISSION TO MEASURE ROOM LIGHT…');
     try {
       await CONTEXT.startCamera(video, preview);
-      announce('CAMERA ON · MEASURING ROOM BRIGHTNESS');
+      announce('CAMERA SENSOR ON · MEASURING REAL ROOM BRIGHTNESS (64×48 PREVIEW)');
     } catch (err) {
-      announce(`CAMERA UNAVAILABLE · USE SLIDER OR D/B KEYS`);
+      announce('CAMERA UNAVAILABLE · USE ROOM LIGHT SLIDER OR D/B KEYS');
     } finally {
       camBtn.disabled = false;
       updateCameraUI();
@@ -244,7 +250,7 @@
   function restoreDemo() {
     SEQ.clear();
     SEQ.seed();
-    announce('DEMO MELODY LOADED (A1–H8)');
+    announce('DEMO MELODY LOADED (8 NOTES ACROSS A1–H8)');
     updatePanel();
   }
 
@@ -293,9 +299,11 @@
 
   playBtn.addEventListener('click', togglePlay);
   camBtn.addEventListener('click', toggleCamera);
-  $('clear-btn').addEventListener('click', () => { SEQ.clear(); announce('PATTERN CLEARED'); updatePanel(); });
+  $('clear-btn').addEventListener('click', () => { SEQ.clear(); announce('ALL PADS CLEARED'); updatePanel(); });
   $('demo-btn').addEventListener('click', restoreDemo);
   if ($('demo-top-btn')) $('demo-top-btn').addEventListener('click', restoreDemo);
+  if ($('dark-btn')) $('dark-btn').addEventListener('click', () => nudgeLight(-1));
+  if ($('bright-btn')) $('bright-btn').addEventListener('click', () => nudgeLight(1));
 
   document.querySelectorAll('[data-frame]').forEach((btn) => {
     btn.addEventListener('click', () => {

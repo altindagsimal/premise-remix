@@ -244,6 +244,31 @@ const RENDER = {
       if (p.alpha <= 0 || p.r > maxR) this.ripples.splice(i, 1);
     }
 
+    // 4b. DARK-ROOM EXPLANATION BANNER — explains why visual layers are hidden
+    const hiddenLayers = [];
+    if (!RULES.signalVisible('gridLines', L)) hiddenLayers.push('Grid Lines (<55%)');
+    if (!RULES.signalVisible('ripples', L)) hiddenLayers.push('Wave Ripples (<40%)');
+    if (!RULES.signalVisible('playhead', L)) hiddenLayers.push('Playhead ▲ (<25%)');
+    if (!RULES.signalVisible('notes', L)) hiddenLayers.push('Note Pads (<10%)');
+    if (hiddenLayers.length > 0) {
+      const pct = Math.round(L * 100);
+      const msg = `☀ ROOM LIGHT ${pct}% — HIDDEN: ${hiddenLayers.join(', ')} · Follow by listening`;
+      c.save();
+      c.font = `800 11px ${MONO}`;
+      const tw = Math.min(STATE.stageW - 16, c.measureText(msg).width + 18);
+      const bx = Math.round((STATE.stageW - tw) / 2), by = 4;
+      c.fillStyle = 'rgba(7, 11, 18, 0.88)';
+      c.fillRect(bx, by, tw, 20);
+      c.strokeStyle = '#ff2a85';
+      c.lineWidth = 1.5;
+      c.strokeRect(bx + 0.5, by + 0.5, tw - 1, 19);
+      c.fillStyle = '#ffe600';
+      c.textAlign = 'center';
+      c.textBaseline = 'middle';
+      c.fillText(msg, STATE.stageW / 2, by + 10.5);
+      c.restore();
+    }
+
     // 5. CLICK FLASH — always visible (acknowledges action even in 0% light)
     for (let i = this.flashes.length - 1; i >= 0; i--) {
       const f = this.flashes[i];
