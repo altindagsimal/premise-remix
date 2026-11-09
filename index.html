@@ -17,7 +17,8 @@
         <h1>SPATIAL_RESONATOR.EXE</h1>
         <span class="premise-tag">CONTEXT × FEEDBACK</span>
       </div>
-      <div class="titlebar-btns" role="group" aria-label="Quick frame size">
+      <div class="titlebar-btns" role="group" aria-label="Quick frame size and live code">
+        <button class="win-code-btn" id="code-top-btn" type="button" aria-pressed="false" title="Open Live Code Editor (Key: E)">&lt;/&gt; CODE <kbd>E</kbd></button>
         <button class="win-btn" data-frame="-1,-1" title="Shrink window frame (N/S)" aria-label="Shrink window frame">_</button>
         <button class="win-btn" data-frame="reset" title="Reset to full window (R)" aria-label="Full window frame">□</button>
         <button class="win-btn close" id="demo-top-btn" title="Reload demo melody" aria-label="Reload demo melody">★</button>
@@ -26,7 +27,7 @@
 
     <!-- SINGLE-LINE INSTRUCTION BANNER -->
     <div class="subbar">
-      <p class="instruction">★ Click pads (<b>A1–H8</b>) and press <b>PLAY</b> — resize the window (changes <b>Pitch &amp; Room Echo</b>) or dim the room light (changes <b>Tempo</b> and hides <b>Visual Layers</b>).</p>
+      <p class="instruction">★ Click pads (<b>A1–H8</b>) and press <b>PLAY</b> — resize the window (<b>Pitch &amp; Echo</b>), dim the room light (<b>Tempo &amp; Visual Layers</b>), or open <b>&lt;/&gt; CODE [E]</b> to live-edit system rules.</p>
     </div>
 
     <!-- WINAMP-STYLE SELF-EXPLANATORY FEEDBACK DECK -->
@@ -97,6 +98,7 @@
         <button id="play-btn" class="btn95 primary" aria-pressed="false">▶ PLAY <kbd>P</kbd></button>
         <button id="clear-btn" class="btn95">■ CLEAR</button>
         <button id="demo-btn" class="btn95">★ DEMO</button>
+        <button id="code-btn" class="btn95 code-toggle" type="button" aria-pressed="false" title="Open Live Code Inspector to edit CONFIG &amp; RULES (Key: E)">&lt;/&gt; CODE <kbd>E</kbd></button>
       </div>
 
       <div class="fader-box">
@@ -114,6 +116,48 @@
         <button class="btn95 mini" data-frame="0,-1" title="Simulate shorter window (Key: S)">Shorter <kbd>S</kbd></button>
         <button class="btn95 mini" data-frame="0,1" title="Simulate taller window (Key: T)">Taller <kbd>T</kbd></button>
         <button class="btn95 mini" data-frame="reset" title="Restore full window size (Key: R)">Full Size <kbd>R</kbd></button>
+      </div>
+    </section>
+
+    <!-- IN-APP LIVE CODE EDITOR WINDOW (Modeled on IMA Lab Code Panel, Win95/Winamp styled) -->
+    <section class="code-win" id="code-win" hidden aria-label="Live Code Editor — config.js and rules.js">
+      <div class="code-titlebar" id="code-drag-handle">
+        <div class="code-title-left">
+          <span class="code-icon" aria-hidden="true">&lt;/&gt;</span>
+          <span id="code-name">config.js + rules.js — Spatial Resonator</span>
+        </div>
+        <div class="code-title-btns">
+          <button class="win-btn close" id="code-close-btn" type="button" title="Close code panel (Esc)" aria-label="Close code">×</button>
+        </div>
+      </div>
+
+      <div class="code-presets" role="group" aria-label="Quick live-code experiments">
+        <span class="preset-label">QUICK EDIT:</span>
+        <button type="button" class="btn95 mini preset-btn" data-preset="echo2x" title="Double the room echo in large windows">2× Hall Echo</button>
+        <button type="button" class="btn95 mini preset-btn" data-preset="cooldown" title="Require 1000ms wait between pad clicks">1s Edit Cooldown</button>
+        <button type="button" class="btn95 mini preset-btn" data-preset="keepPlayhead" title="Keep Playhead ▲ visible even at 0% light">Keep ▲ in Dark</button>
+        <button type="button" class="btn95 mini preset-btn" data-preset="invertPitch" title="Flip pitch rule: wide window = high, narrow = low">Invert Pitch</button>
+        <button type="button" class="btn95 mini preset-btn" data-preset="synth8bit" title="Switch waveforms to 8-bit square &amp; sawtooth">8-Bit Wave</button>
+      </div>
+
+      <div class="code-body">
+        <pre id="code-knobs" class="code-pre" aria-label="Interactive CONFIG parameters"></pre>
+
+        <div class="code-rules-header">
+          <span>// 2) LIVE RULES (<code>js/rules.js</code>) · edit JS functions below &amp; press <b>▶ APPLY CODE</b> (<kbd>Ctrl+Enter</kbd>)</span>
+        </div>
+        <div class="code-editor-wrap">
+          <div class="code-gutter" id="rules-gutter" aria-hidden="true"></div>
+          <textarea id="rules-editor" class="rules-textarea" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Editable rules.js functions"></textarea>
+        </div>
+      </div>
+
+      <div class="code-foot">
+        <span id="code-status" class="code-status" role="status" aria-live="polite">READY — Edit numbers inline or edit JS rules &amp; click ▶ APPLY CODE</span>
+        <div class="code-foot-btns">
+          <button class="btn95 primary mini" id="code-run-btn" type="button" title="Apply edited rules.js code (Ctrl+Enter / Cmd+Enter)">▶ APPLY CODE</button>
+          <button class="btn95 mini" id="code-reset-btn" type="button" title="Reset all CONFIG parameters and RULES functions to defaults">↺ RESET</button>
+        </div>
       </div>
     </section>
 
