@@ -29,9 +29,6 @@
 5. **Observe the self-explanatory Feedback loop:**
    - **Context → Sound Rules Deck:** Every readout explicitly shows what context input is measured and what sound rule it changes (`☀ Room Light 75% → Tempo 116 BPM`, `↔ Width 920px → Pitch ×1.00`, `□ Room Size 100% → Room Echo 30%`).
    - **Context → Visual Feedback Layers:** The 4 layer indicators (`Grid Lines & Labels`, `Wave Ripples`, `Playhead Bar (▲)`, `Note Pads (A1–H8)`) explicitly state whether each layer is `VISIBLE` or `HIDDEN` and what Room Light percentage it requires (`≥55%`, `≥40%`, `≥25%`, `≥10%`).
-6. **Live-Edit System Rules in the Browser (`</> CODE [E]`):**
-   - Click **`</> CODE [E]`** (in the titlebar or transport bar, or press **E**) to open the in-app **Live Code Editor** (`config.js + rules.js`).
-   - Edit `CONFIG` parameters inline (changes apply immediately and highlight the modified line) or rewrite `RULES` functions in JavaScript and click **`▶ APPLY CODE`** (`Ctrl+Enter` / `Cmd+Enter`) to update the running sequencer on the spot. Click **`↺ RESET`** to restore default parameters and rules.
 
 ---
 
