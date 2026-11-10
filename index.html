@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Spatial Resonator · Context × Feedback</title>
   <meta name="description" content="An 8×8 step sequencer shaped by your browser window and the light in your room. NMED 3203 premise remix: Context × Feedback.">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=3">
 </head>
 <body>
 
@@ -17,7 +17,8 @@
         <h1>SPATIAL_RESONATOR.EXE</h1>
         <span class="premise-tag">CONTEXT × FEEDBACK</span>
       </div>
-      <div class="titlebar-btns" role="group" aria-label="Quick frame size">
+      <div class="titlebar-btns" role="group" aria-label="Quick frame size and live code">
+        <button class="win-code-btn" id="code-top-btn" type="button" aria-pressed="false" onclick="var w=document.getElementById('code-win');if(w)w.hidden=!w.hidden;" title="Open Live Code Editor (Key: E)">&lt;/&gt; CODE <kbd>E</kbd></button>
         <button class="win-btn" data-frame="-1,-1" title="Shrink window frame (N/S)" aria-label="Shrink window frame">_</button>
         <button class="win-btn" data-frame="reset" title="Reset to full window (R)" aria-label="Full window frame">□</button>
         <button class="win-btn close" id="demo-top-btn" title="Reload demo melody" aria-label="Reload demo melody">★</button>
@@ -26,7 +27,7 @@
 
     <!-- SINGLE-LINE INSTRUCTION BANNER -->
     <div class="subbar">
-      <p class="instruction">★ Click pads (<b>A1–H8</b>) and press <b>PLAY</b> — resize the window (changes <b>Pitch &amp; Room Echo</b>) or dim the room light (changes <b>Tempo</b> and hides <b>Visual Layers</b>).</p>
+      <p class="instruction">★ Click pads (<b>A1–H8</b>) and press <b>PLAY</b> — resize the window (<b>Pitch &amp; Echo</b>), dim the room light (<b>Tempo &amp; Visual Layers</b>), or open <b>&lt;/&gt; CODE [E]</b> to live-edit system rules.</p>
     </div>
 
     <!-- WINAMP-STYLE SELF-EXPLANATORY FEEDBACK DECK -->
@@ -97,6 +98,7 @@
         <button id="play-btn" class="btn95 primary" aria-pressed="false">▶ PLAY <kbd>P</kbd></button>
         <button id="clear-btn" class="btn95">■ CLEAR</button>
         <button id="demo-btn" class="btn95">★ DEMO</button>
+        <button id="code-btn" class="btn95 code-toggle" type="button" aria-pressed="false" onclick="var w=document.getElementById('code-win');if(w)w.hidden=!w.hidden;" title="Open Live Code Inspector to edit CONFIG &amp; RULES (Key: E)">&lt;/&gt; CODE <kbd>E</kbd></button>
       </div>
 
       <div class="fader-box">
@@ -114,6 +116,117 @@
         <button class="btn95 mini" data-frame="0,-1" title="Simulate shorter window (Key: S)">Shorter <kbd>S</kbd></button>
         <button class="btn95 mini" data-frame="0,1" title="Simulate taller window (Key: T)">Taller <kbd>T</kbd></button>
         <button class="btn95 mini" data-frame="reset" title="Restore full window size (Key: R)">Full Size <kbd>R</kbd></button>
+      </div>
+    </section>
+
+    <!-- IN-APP LIVE CODE EDITOR WINDOW (Modeled on IMA Lab Code Panel, Win95/Winamp styled) -->
+    <section class="code-win" id="code-win" hidden aria-label="Live Code Editor — config.js and rules.js">
+      <div class="code-titlebar" id="code-drag-handle">
+        <div class="code-title-left">
+          <span class="code-icon" aria-hidden="true">&lt;/&gt;</span>
+          <span id="code-name">config.js + rules.js — Spatial Resonator (LIVE CODE)</span>
+        </div>
+        <div class="code-title-btns">
+          <button class="win-btn close" id="code-close-btn" type="button" onclick="var w=document.getElementById('code-win');if(w)w.hidden=true;" title="Close code panel (Esc)" aria-label="Close code">×</button>
+        </div>
+      </div>
+
+      <div class="code-presets" role="group" aria-label="Quick live-code experiments">
+        <span class="preset-label">QUICK EDIT:</span>
+        <button type="button" class="btn95 mini preset-btn" data-preset="echo2x" title="Double the room echo in large windows">2× Hall Echo</button>
+        <button type="button" class="btn95 mini preset-btn" data-preset="invertTempo" title="Flip tempo: fast in dark (156 BPM), slow in bright (64 BPM)">Fast in Dark</button>
+        <button type="button" class="btn95 mini preset-btn" data-preset="invertPitch" title="Flip pitch rule: wide window = high, narrow = low">Invert Pitch</button>
+        <button type="button" class="btn95 mini preset-btn" data-preset="keepPlayhead" title="Keep Playhead ▲ visible even at 0% light">Keep ▲ in Dark</button>
+        <button type="button" class="btn95 mini preset-btn" data-preset="synth8bit" title="Switch waveforms to 8-bit square &amp; sawtooth">8-Bit Wave</button>
+        <button type="button" class="btn95 mini preset-btn" data-preset="cooldown" title="Require 1000ms wait between pad clicks">1s Cooldown</button>
+      </div>
+
+      <div class="code-body">
+        <pre id="code-knobs" class="code-pre" aria-label="Interactive CONFIG parameters"><span class="ln"><i>1</i><span><span class="c">// 1) DESIGN PARAMETERS (js/config.js) · change any value, test at once</span></span></span><span class="ln"><i>2</i><span><span class="k">const</span> CONFIG = {</span></span><span class="ln" data-knob-line="tempo.darkBpm"><i>3</i><span>  tempo.darkBpm: <input type="number" data-knob="tempo.darkBpm" step="4" min="30" max="240" value="68" aria-label="tempo.darkBpm">, <span class="c">// BPM at 0% room light</span></span></span><span class="ln" data-knob-line="tempo.brightBpm"><i>4</i><span>  tempo.brightBpm: <input type="number" data-knob="tempo.brightBpm" step="4" min="30" max="240" value="132" aria-label="tempo.brightBpm">, <span class="c">// BPM at 100% room light</span></span></span><span class="ln" data-knob-line="signals.gridLines"><i>5</i><span>  signals.gridLines: <input type="number" data-knob="signals.gridLines" step="0.05" min="0" max="2" value="0.55" aria-label="signals.gridLines">, <span class="c">// hide Grid &lt;55% light (0=always, 2=never)</span></span></span><span class="ln" data-knob-line="signals.ripples"><i>6</i><span>  signals.ripples: <input type="number" data-knob="signals.ripples" step="0.05" min="0" max="2" value="0.4" aria-label="signals.ripples">, <span class="c">// hide Ripples &lt;40% light</span></span></span><span class="ln" data-knob-line="signals.playhead"><i>7</i><span>  signals.playhead: <input type="number" data-knob="signals.playhead" step="0.05" min="0" max="2" value="0.25" aria-label="signals.playhead">, <span class="c">// hide Playhead ▲ &lt;25% light</span></span></span><span class="ln" data-knob-line="signals.notes"><i>8</i><span>  signals.notes: <input type="number" data-knob="signals.notes" step="0.05" min="0" max="2" value="0.1" aria-label="signals.notes">, <span class="c">// hide Note Pads &lt;10% light</span></span></span><span class="ln" data-knob-line="audio.narrowPitchMul"><i>9</i><span>  audio.narrowPitchMul: <input type="number" data-knob="audio.narrowPitchMul" step="0.05" min="0.3" max="2.5" value="1.45" aria-label="audio.narrowPitchMul">, <span class="c">// narrow window pitch ×</span></span></span><span class="ln" data-knob-line="audio.widePitchMul"><i>10</i><span>  audio.widePitchMul: <input type="number" data-knob="audio.widePitchMul" step="0.05" min="0.3" max="2.5" value="0.72" aria-label="audio.widePitchMul">, <span class="c">// wide window pitch ×</span></span></span><span class="ln" data-knob-line="audio.echoMixSmall"><i>11</i><span>  audio.echoMixSmall: <input type="number" data-knob="audio.echoMixSmall" step="0.05" min="0" max="0.95" value="0.03" aria-label="audio.echoMixSmall">, <span class="c">// small window echo (0..1)</span></span></span><span class="ln" data-knob-line="audio.echoMixLarge"><i>12</i><span>  audio.echoMixLarge: <input type="number" data-knob="audio.echoMixLarge" step="0.05" min="0" max="0.95" value="0.42" aria-label="audio.echoMixLarge">, <span class="c">// large window echo (0..1)</span></span></span><span class="ln" data-knob-line="audio.echoMaxSec"><i>13</i><span>  audio.echoMaxSec: <input type="number" data-knob="audio.echoMaxSec" step="0.05" min="0.05" max="1.5" value="0.3" aria-label="audio.echoMaxSec">, <span class="c">// large room echo delay (s)</span></span></span><span class="ln" data-knob-line="audio.echoFeedbackLarge"><i>14</i><span>  audio.echoFeedbackLarge: <input type="number" data-knob="audio.echoFeedbackLarge" step="0.05" min="0" max="0.88" value="0.48" aria-label="audio.echoFeedbackLarge">, <span class="c">// echo repeats (0..0.88)</span></span></span><span class="ln" data-knob-line="audio.brightWave"><i>15</i><span>  audio.brightWave: <select data-knob="audio.brightWave" aria-label="audio.brightWave"><option value="triangle" selected>'triangle'</option><option value="sine">'sine'</option><option value="square">'square'</option><option value="sawtooth">'sawtooth'</option></select>, <span class="c">// bright room wave</span></span></span><span class="ln" data-knob-line="audio.darkWave"><i>16</i><span>  audio.darkWave: <select data-knob="audio.darkWave" aria-label="audio.darkWave"><option value="sine" selected>'sine'</option><option value="triangle">'triangle'</option><option value="square">'square'</option><option value="sawtooth">'sawtooth'</option></select>, <span class="c">// dark room wave</span></span></span><span class="ln" data-knob-line="audio.rootMidi"><i>17</i><span>  audio.rootMidi: <input type="number" data-knob="audio.rootMidi" step="1" min="36" max="72" value="48" aria-label="audio.rootMidi">, <span class="c">// base pitch (48=C3, 60=C4)</span></span></span><span class="ln" data-knob-line="edits.cooldownMs"><i>18</i><span>  edits.cooldownMs: <input type="number" data-knob="edits.cooldownMs" step="100" min="0" max="5000" value="0" aria-label="edits.cooldownMs">, <span class="c">// ms wait between clicks</span></span></span><span class="ln"><i>19</i><span>};</span></span></pre>
+
+        <div class="code-rules-header">
+          <span>// 2) LIVE RULES (<code>js/rules.js</code>) · edit JS functions below &amp; press <b>▶ APPLY CODE</b> (<kbd>Ctrl+Enter</kbd>)</span>
+        </div>
+        <div class="code-editor-wrap">
+          <div class="code-gutter" id="rules-gutter" aria-hidden="true">20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54</div>
+          <textarea id="rules-editor" class="rules-textarea" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Editable rules.js functions">// Edit any rule function below &amp; click [▶ APPLY CODE] (Ctrl+Enter):
+RULES.pitchMultiplier = function (gridW) {
+  // Narrow window → narrowPitchMul; Wide window → widePitchMul
+  return lerp(CONFIG.audio.narrowPitchMul, CONFIG.audio.widePitchMul, RULES.widthRatio(gridW));
+};
+
+RULES.echoMix = function (gridW, gridH) {
+  // Small window area → dry studio; Large window area → hall echo
+  return lerp(CONFIG.audio.echoMixSmall, CONFIG.audio.echoMixLarge, RULES.roomSizeRatio(gridW, gridH));
+};
+
+RULES.echoSeconds = function (gridW, gridH) {
+  return lerp(CONFIG.audio.echoMinSec, CONFIG.audio.echoMaxSec, RULES.roomSizeRatio(gridW, gridH));
+};
+
+RULES.bpmFromLight = function (light) {
+  // 0% light → darkBpm; 100% light → brightBpm
+  return Math.round(lerp(CONFIG.tempo.darkBpm, CONFIG.tempo.brightBpm, light));
+};
+
+RULES.waveFromLight = function (light) {
+  return light >= 0.5 ? CONFIG.audio.brightWave : CONFIG.audio.darkWave;
+};
+
+RULES.signalVisible = function (name, light) {
+  // Visual layer stays visible while room light >= threshold
+  return light >= CONFIG.signals[name];
+};
+
+RULES.midiForCell = function (row, step = 0) {
+  // Row A (0) = high octave, Row H (7) = low; steps 1→8 climb scale
+  const s = CONFIG.audio.scale;
+  const rowOffset = (CONFIG.grid.rows - 1 - row) * 3;
+  return CONFIG.audio.rootMidi + rowOffset + s[step % s.length];
+};</textarea>
+        </div>
+      </div>
+
+      <div class="code-foot">
+        <span id="code-status" class="code-status" role="status" aria-live="polite">READY — Change any number above for instant effect, or edit JS &amp; click ▶ APPLY CODE</span>
+        <div class="code-foot-btns">
+          <button class="btn95 primary mini" id="code-run-btn" type="button" title="Apply edited rules.js code (Ctrl+Enter / Cmd+Enter)">▶ APPLY CODE</button>
+          <button class="btn95 mini" id="code-reset-btn" type="button" title="Reset all CONFIG parameters and RULES functions to defaults">↺ RESET</button>
+        </div>
       </div>
     </section>
 
@@ -141,12 +254,12 @@
   <p id="live" class="sr-only" aria-live="polite"></p>
 
   <!-- Load order matters: config → rules → state/context → audio → sequencer → render → main -->
-  <script src="js/config.js"></script>
-  <script src="js/rules.js"></script>
-  <script src="js/context.js"></script>
-  <script src="js/audio.js"></script>
-  <script src="js/sequencer.js"></script>
-  <script src="js/render.js"></script>
-  <script src="js/main.js"></script>
+  <script src="js/config.js?v=3"></script>
+  <script src="js/rules.js?v=3"></script>
+  <script src="js/context.js?v=3"></script>
+  <script src="js/audio.js?v=3"></script>
+  <script src="js/sequencer.js?v=3"></script>
+  <script src="js/render.js?v=3"></script>
+  <script src="js/main.js?v=3"></script>
 </body>
 </html>
